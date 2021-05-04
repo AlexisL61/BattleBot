@@ -1,5 +1,5 @@
 import { MessageEmbed } from "discord.js";
-import Player from "../player/Player";
+import Player from "../class/player/Player";
 
 export default class EmbedConstructor{
     /**

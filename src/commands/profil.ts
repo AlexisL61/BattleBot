@@ -1,4 +1,4 @@
-import PlayerCreator from "../player/PlayerCreator";
+import PlayerCreator from "../class/player/PlayerCreator";
 import commandSender from "../types/commandSender";
 import EmbedConstructor from "../utility/EmbedConstructor";
 

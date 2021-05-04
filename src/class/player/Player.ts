@@ -1,11 +1,13 @@
 import { User } from "discord.js";
-import databasePlayer from "../types/database/player";
+import databasePlayer from "../../types/database/player";
+import Weapon from "../weapon/Weapon";
 
 
 export default class Player {
     private _id: string;
     private _discordUser: User;
     private _data: databasePlayer;
+    private inventory:Array<Weapon>;
 
     /**
      * Représente un joueur sur BattleBot
@@ -17,6 +19,12 @@ export default class Player {
 		this.discordUser = $discordUser;
         this.data = $data;
 	}
+
+    public checkIfDead(){
+        if (this.data.lifeStats.health == 0){
+            
+        }
+    }
 
     public get discordUser(): User {
         return this._discordUser;

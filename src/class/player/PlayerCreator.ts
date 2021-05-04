@@ -1,5 +1,5 @@
 import { Client } from "discord.js";
-import databasePlayer, { _playerDefault } from "../types/database/player";
+import databasePlayer, { _playerDefault } from "../../types/database/player";
 import Player from "./Player";
 
 export default class PlayerCreator {
@@ -12,6 +12,7 @@ export default class PlayerCreator {
         if (fetchData!=undefined){
             return new Player(fetchData,await this.getDatabaseUserFromId(id))
         }
+        return undefined;
     }
 
     private static async getDatabaseUserFromId(id:string):Promise<databasePlayer>{

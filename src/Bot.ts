@@ -1,6 +1,6 @@
-import Discord from "discord.js"
-import Cache from "./cache/Cache";
-import PlayerCreator from "./player/PlayerCreator";
+import Discord, { MessageMentions } from "discord.js"
+import Cache from "./class/cache/Cache";
+import PlayerCreator from "./class/player/PlayerCreator";
 
 import commandFile, { totalCommands } from "./types/commandFile";
 import commandSender from "./types/commandSender";
@@ -26,6 +26,7 @@ client.on("ready",()=>{
 })
 
 client.on("message",(message)=>{
+    //console.log(message.content.match(MessageMentions.USERS_PATTERN))
     if (commands.find(c=>c.command==message.content.replace(prefix,""))){
         var commandFound:commandFile = commands.find(c=>c.command==message.content.replace(prefix,""))
         const start = require("./commands/"+commandFound.file)
