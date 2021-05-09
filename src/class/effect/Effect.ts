@@ -3,16 +3,16 @@ import Player from "../player/Player";
 
 export default abstract class Effect {
     private _type: string;
-    private _mentionTarget: string;
+    private _mentionTarget: "user" | "nearestMention";
 
-    constructor(type:string,mentionTarget:string){
+    constructor(type:string,mentionTarget:"user" | "nearestMention"){
         this.type = type;
         this.mentionTarget = mentionTarget
     }
 
     public abstract toString():string
 
-    public abstract applyEffect(player:Player):useEffect
+    public abstract applyEffect(player:Player,target:Player):Promise<useEffect>
 
     public get type(): string {
         return this._type;
@@ -21,10 +21,10 @@ export default abstract class Effect {
         this._type = value;
     }
 
-    public get mentionTarget(): string {
+    public get mentionTarget(): "user" | "nearestMention" {
         return this._mentionTarget;
     }
-    public set mentionTarget(value: string) {
+    public set mentionTarget(value: "user" | "nearestMention") {
         this._mentionTarget = value;
     }
 } 

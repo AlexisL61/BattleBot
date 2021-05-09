@@ -4,7 +4,7 @@ import PlayerCreator from "../player/PlayerCreator";
 
 export default class Cache {
     static client:Client;
-    static players: Collection<string, Player>;
+    static players: Collection<string, Player> = new Collection();
 
     /**
      * Récupère le joueur dans le cache, créé un nouveau joueur sinon

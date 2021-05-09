@@ -1,9 +1,12 @@
 import Discord, { MessageMentions } from "discord.js"
 import Cache from "./class/cache/Cache";
+import Database from "./class/database/Database";
+import Player from "./class/player/Player";
 import PlayerCreator from "./class/player/PlayerCreator";
 
 import commandFile, { totalCommands } from "./types/commandFile";
 import commandSender from "./types/commandSender";
+import EmbedConstructor from "./utility/EmbedConstructor";
 require("dotenv").config()
 
 var commands:Array<commandFile> = totalCommands
@@ -20,15 +23,23 @@ mclient.connect(err => {
 
 client.on("ready",()=>{
     console.log("ready")
-    var playerDatabase = mclient.db("Main").collection("Player")
-    PlayerCreator.playerDatabase = playerDatabase
+    var playerDatabase = mclient.db("Player").collection("Player")
+    Database.playerDatabase = playerDatabase
+    Database.attackDatabase = mclient.db("Player").collection("Attack")
     PlayerCreator.client = client
 })
 
-client.on("message",(message)=>{
+client.on("message",async (message)=>{
+    
     //console.log(message.content.match(MessageMentions.USERS_PATTERN))
-    if (commands.find(c=>c.command==message.content.replace(prefix,""))){
-        var commandFound:commandFile = commands.find(c=>c.command==message.content.replace(prefix,""))
+    if (commands.find(c=>message.content.replace(prefix,"").startsWith(c.command))){
+        var commandFound:commandFile = commands.find(c=>message.content.replace(prefix,"").startsWith(c.command))
+        if (commandFound.needAlive){
+            var player = await Cache.playerFind(message.author.id)
+            if (player.data.dead){
+                return message.channel.send(EmbedConstructor.needRespawn())
+            }
+        }
         const start = require("./commands/"+commandFound.file)
         
         start({"message":message})

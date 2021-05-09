@@ -4,16 +4,18 @@ type databasePlayer = {
     lifeStats:{
         health:number,
         shield:number,
-    }
+    },
+    dead:boolean
 }
 
 var _playerDefault:databasePlayer= {
     id:"",
-    coins:0,
+    coins:1000,
     lifeStats:{
         health:100,
         shield:0,
-    }
+    },
+    dead:false
 }
 
 export default databasePlayer

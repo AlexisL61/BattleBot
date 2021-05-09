@@ -1,10 +1,9 @@
 import { Client } from "discord.js";
 import databasePlayer, { _playerDefault } from "../../types/database/player";
+import Database from "../database/Database";
 import Player from "./Player";
 
 export default class PlayerCreator {
-    
-    static playerDatabase:any;
     static client:Client
 
     public static async fromId(id:string):Promise<Player>{
@@ -16,7 +15,7 @@ export default class PlayerCreator {
     }
 
     private static async getDatabaseUserFromId(id:string):Promise<databasePlayer>{
-        var result = await this.playerDatabase.findOne({"id":id})
+        var result = await Database.playerDatabase.findOne({"id":id})
         if (result!=undefined){
             return result
         }else{
