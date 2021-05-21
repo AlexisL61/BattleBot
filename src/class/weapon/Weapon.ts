@@ -1,4 +1,4 @@
-import { MessageMentions, TextChannel } from "discord.js";
+import { Message, MessageMentions, TextChannel } from "discord.js";
 import mention from "../../types/mentions";
 import useWeapon from "../../types/useWeapon";
 import Effect from "../effect/Effect";
@@ -9,6 +9,8 @@ import weaponType from "../../types/weaponType";
 import Cache from "../cache/Cache";
 import { rarities } from "../../static/rarityList";
 import rarityType from "../../types/rarityType";
+import databaseWeapon from "../../types/database/weapon";
+import Database from "../database/Database";
 
 export default class Weapon {
     private _id: string;
@@ -17,10 +19,13 @@ export default class Weapon {
     private _image: string;
     private effect:Effect
     private rarity:rarityType
+    private _databaseId: string;
+    private _owner: string;
 
-    constructor(weaponId:string){
-        if (Weapon.getWeaponData(weaponId)){
-            var w = Weapon.getWeaponData(weaponId)
+    constructor(id:string){
+        var found =  Weapon.getWeaponData(id)
+        if (found){
+            var w = found
             this.id = w.id
             this.name = w.name
             this.emoji = w.emoji
@@ -30,8 +35,12 @@ export default class Weapon {
         }
     }
 
-    public async use(player:Player):Promise<useWeapon>{
-        var effectResult = await this.effect.applyEffect(player,player)
+    public async use(player:Player,message:Message):Promise<useWeapon>{
+        var messageMentions = message.content.match(MessageMentions.USERS_PATTERN) || [];
+        for (var i in messageMentions){
+            messageMentions[i] = messageMentions[i].replace("<@","").replace("!","").replace(">","")
+        }
+        var effectResult = await this.effect.applyEffect(player,player,messageMentions)
         var finalMessage = ""
         finalMessage += effectResult.data.message+"\n"
         if (effectResult.data.dead){
@@ -74,6 +83,24 @@ export default class Weapon {
         }else{
             return undefined
         }
+    }
+
+    public static async getDatabaseWeapon(weaponId:string):Promise<Weapon>{
+        var found:databaseWeapon =await Database.inventoryDatabase.findOne({"id":weaponId})
+        if (found){
+            var w = new Weapon(found.weapon_id)
+            w.owner = found.owner
+            w._databaseId = found.id
+            return w
+        }else{
+            return undefined
+        }
+    }
+
+    public static async createWeapon(weaponId:string,owner:string):Promise<string>{
+        var id = Date.now()
+        await Database.inventoryDatabase.insertOne({"weapon_id":weaponId,"owner":owner,"id":id})
+        return id.toString();
     }
 
     /**
@@ -130,5 +157,17 @@ export default class Weapon {
     }
     public set image(value: string) {
         this._image = value;
+    }
+    public get databaseId(): string {
+        return this._databaseId;
+    }
+    public set databaseId(value: string) {
+        this._databaseId = value;
+    }
+    public get owner(): string {
+        return this._owner;
+    }
+    public set owner(value: string) {
+        this._owner = value;
     }
 }

@@ -20,11 +20,14 @@ export default class Group extends Effect{
         return ""
     }
 
-    public async applyEffect(player: Player, target:Player): Promise<useEffect> {
+    public async applyEffect(player: Player, target:Player,mentions:Array<string>): Promise<useEffect> {
         var message = ""
         var isDead = false
         for (var i in this.children){
-            var result = await this.children[i].applyEffect(player,target)
+            var result = await this.children[i].applyEffect(player,target,mentions)
+            if (result.data.mentionsUsed){
+                mentions.splice(0,result.data.mentionsUsed)
+            }
             if (result.success){
                 message+=result.data.message+"\n"
                 if (result.data.dead && !isDead) isDead=true

@@ -26,6 +26,7 @@ client.on("ready",()=>{
     var playerDatabase = mclient.db("Player").collection("Player")
     Database.playerDatabase = playerDatabase
     Database.attackDatabase = mclient.db("Player").collection("Attack")
+    Database.inventoryDatabase = mclient.db("Player").collection("Inventory")
     PlayerCreator.client = client
 })
 

@@ -12,7 +12,7 @@ export default abstract class Effect {
 
     public abstract toString():string
 
-    public abstract applyEffect(player:Player,target:Player):Promise<useEffect>
+    public abstract applyEffect(player:Player,target:Player,mentions:Array<string>):Promise<useEffect>
 
     public get type(): string {
         return this._type;

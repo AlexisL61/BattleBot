@@ -82,6 +82,9 @@ export default class EmbedConstructor{
             for (var w of data[i]){
                 rarityText += w.weapon.emoji+" "+w.weapon.name.fr+" x"+w.number+"\n"
             }
+            if (rarityText == ""){
+                rarityText = "Aucune arme"
+            }
             embed.addField(rarities[i].name.fr,rarityText)
         }
         return embed

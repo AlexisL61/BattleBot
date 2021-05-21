@@ -1,6 +1,7 @@
 import { DMChannel, MessageEmbed, NewsChannel, TextChannel, User } from "discord.js";
 import databaseAttacker from "../../types/database/attacker";
 import databasePlayer from "../../types/database/player";
+import databaseWeapon from "../../types/database/weapon";
 import EmbedConstructor from "../../utility/EmbedConstructor";
 import Cache from "../cache/Cache";
 import Database from "../database/Database";
@@ -33,6 +34,37 @@ export default class Player {
      */
     public searchInInventory(weaponName:string):number{
         return this.inventory.findIndex(w=>w.name.fr==weaponName)
+    }
+
+    public async loadInventory(){
+        this.inventory = []
+        var foundArray:Array<databaseWeapon> =await Database.inventoryDatabase.find({"owner":this.id}).toArray()
+        for (var i in foundArray){
+            var found = foundArray[i]
+            if (found){
+                var w = new Weapon(found.weapon_id)
+                w.owner = found.owner
+                w.databaseId = found.id
+                this.inventory.push(w)
+            }
+        }
+        if (foundArray.length == 0){
+            this.addInInventory("cailloux")
+        }
+    }
+
+    public async removeInInventory(index:number){
+        var weaponRemove = this.inventory.splice(index,1)
+        await Database.inventoryDatabase.deleteOne({"id":weaponRemove[0].databaseId})
+    }
+
+    public async addInInventory(weapon:string){
+        var id = Date.now().toString();
+        var newWeapon = new Weapon(weapon)
+        newWeapon.owner = this.id
+        newWeapon.databaseId = id
+        this.inventory.push(newWeapon)
+        await Database.inventoryDatabase.insertOne({"id":newWeapon.databaseId,"owner":this.id,"weapon_id":weapon})
     }
 
     public async addAttackDone(target:string, damage:number){

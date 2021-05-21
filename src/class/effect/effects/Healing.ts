@@ -18,7 +18,7 @@ export default class Healing extends Effect{
         return "Soigne "+this.health+"hp et "+this.shield+"bouclier"
     }
 
-    public async applyEffect(player: Player, target:Player): Promise<useEffect> {
+    public async applyEffect(player: Player, target:Player,mentions:Array<string>): Promise<useEffect> {
         if (this.mentionTarget == "user"){
             target = player
         }

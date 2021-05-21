@@ -27,10 +27,10 @@ export = async function(data:commandSender){
         if (weaponIndex!=-1){
             var weapon = thisPlayer.inventory[weaponIndex]
             thisPlayer.lastChannel = data.message.channel
-            var resultUse:useWeapon = await weapon.use(thisPlayer)
+            var resultUse:useWeapon = await weapon.use(thisPlayer,message)
             if (resultUse.success){
                 data.message.channel.send(EmbedConstructor.weaponUse(weapon,resultUse.data.message))
-                thisPlayer.inventory.splice(weaponIndex,1)
+                thisPlayer.removeInInventory(weaponIndex)
             }
         }else{
             data.message.channel.send(EmbedConstructor.weaponNotFoundInInventory(Weapon.getWeaponData(weaponFound)))

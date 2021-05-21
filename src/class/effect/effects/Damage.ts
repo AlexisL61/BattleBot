@@ -24,7 +24,7 @@ export default class Damage extends Effect{
         return "Inflige "+this.damage+" dégats"
     }
 
-    public async applyEffect(player: Player, target:Player): Promise<useEffect> {
+    public async applyEffect(player: Player, target:Player,mentions:Array<string>): Promise<useEffect> {
         if (this.mentionTarget == "user"){
             target = player
         }
