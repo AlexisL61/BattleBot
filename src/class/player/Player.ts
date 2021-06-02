@@ -1,8 +1,10 @@
 import { DMChannel, MessageEmbed, NewsChannel, TextChannel, User } from "discord.js";
 import databaseAttacker from "../../types/database/attacker";
+import databaseBox from "../../types/database/box";
 import databasePlayer from "../../types/database/player";
 import databaseWeapon from "../../types/database/weapon";
 import EmbedConstructor from "../../utility/EmbedConstructor";
+import Box from "../box/Box";
 import Cache from "../cache/Cache";
 import Database from "../database/Database";
 import Weapon from "../weapon/Weapon";
@@ -15,6 +17,8 @@ export default class Player {
     private _data: databasePlayer;
     private _inventory: Array<Weapon> = [new Weapon("cailloux"),new Weapon("cailloux"),new Weapon("cailloux"), new Weapon("bandage")];
     private _lastChannel: TextChannel | DMChannel | NewsChannel;
+    private _box: Array<Box>;
+    
 
     /**
      * Représente un joueur sur BattleBot
@@ -35,6 +39,10 @@ export default class Player {
     public searchInInventory(weaponName:string):number{
         return this.inventory.findIndex(w=>w.name.fr==weaponName)
     }
+
+    //--------------------------//
+    //--------Inventory---------//
+    //--------------------------//
 
     public async loadInventory(){
         this.inventory = []
@@ -58,15 +66,54 @@ export default class Player {
         await Database.inventoryDatabase.deleteOne({"id":weaponRemove[0].databaseId})
     }
 
-    public async addInInventory(weapon:string){
+    public async addInInventory(weapon:string):Promise<Weapon>{
         var id = Date.now().toString();
         var newWeapon = new Weapon(weapon)
         newWeapon.owner = this.id
         newWeapon.databaseId = id
         this.inventory.push(newWeapon)
         await Database.inventoryDatabase.insertOne({"id":newWeapon.databaseId,"owner":this.id,"weapon_id":weapon})
+        return newWeapon
     }
 
+    //--------------------------//
+    //-----------Box------------//
+    //--------------------------//
+
+    public async loadBoxes(){
+        this.box = []
+        var foundArray:Array<databaseBox> =await Database.boxDatabase.find({"owner":this.id}).toArray()
+        for (var i in foundArray){
+            var found = foundArray[i]
+            if (found){
+                var b = new Box(found.box_id)
+                b.owner = found.owner
+                b.databaseId = found.id
+                this.box.push(b)
+            }
+        }
+        if (foundArray.length == 0){
+            this.addInBox("common_box")
+        }
+    }
+
+    public async removeInBox(index:number){
+        var boxRemoved = this.box.splice(index,1)
+        await Database.boxDatabase.deleteOne({"id":boxRemoved[0].databaseId})
+    }
+
+    public async addInBox(box:string){
+        var id = Date.now().toString();
+        var newBox = new Box(box)
+        newBox.owner = this.id
+        newBox.databaseId = id
+        this.box.push(newBox)
+        await Database.boxDatabase.insertOne({"id":newBox.databaseId,"owner":this.id,"box_id":box})
+    }
+
+    //--------------------------//
+    //---------Attaques---------//
+    //--------------------------//
     public async addAttackDone(target:string, damage:number){
         var attackAlreadyDone:databaseAttacker = await Database.attackDatabase.findOne({"attacker":this._id, "target":target})
         if (attackAlreadyDone!=undefined){
@@ -184,6 +231,12 @@ export default class Player {
         return {"health":finalHealth,"shield":finalShield}
     }
 
+    public get box(): Array<Box> {
+        return this._box;
+    }
+    public set box(value: Array<Box>) {
+        this._box = value;
+    }
     public async sendMp(message:string|MessageEmbed){
         this._discordUser.send(message)
     }

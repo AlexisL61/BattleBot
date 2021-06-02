@@ -11,6 +11,7 @@ totalCommands.push({"file":"profil","command":"profil","needAlive":true})
 totalCommands.push({"file":"use","command":"use","needAlive":true})
 totalCommands.push({"file":"respawn","command":"respawn","needAlive":false})
 totalCommands.push({"file":"inventory","command":"inventory","needAlive":true})
+totalCommands.push({"file":"box","command":"box","needAlive":true})
 
 export {totalCommands};
 export default commandFile;

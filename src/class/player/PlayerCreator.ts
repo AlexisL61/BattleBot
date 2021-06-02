@@ -11,6 +11,7 @@ export default class PlayerCreator {
         if (fetchData!=undefined){
             const player = new Player(fetchData,await this.getDatabaseUserFromId(id))
             await player.loadInventory()
+            await player.loadBoxes()
             return player
         }
         return undefined;

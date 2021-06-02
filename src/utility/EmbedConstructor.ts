@@ -1,6 +1,8 @@
 import { MessageEmbed } from "discord.js";
+import Box from "../class/box/Box";
 import Player from "../class/player/Player";
 import Weapon from "../class/weapon/Weapon";
+import box from "../commands/box";
 import { rarities } from "../static/rarityList";
 import weaponType from "../types/weaponType";
 
@@ -101,6 +103,27 @@ export default class EmbedConstructor{
         var embed = new MessageEmbed()
         embed.setTitle("Utilisation annulée")
         embed.setDescription("L'Utilisation a été annulée pour la raison suivante: "+reason)
+        return embed
+    }
+
+    public static playerBoxes(p:Player):MessageEmbed{
+        var data = p.box
+        var embed = new MessageEmbed()
+        embed.setTitle("Box")
+        var finalDescription = ""
+        for (var i in data){
+            finalDescription+=(parseInt(i)+1)+". "+data[i].emoji+" "+data[i].name.fr+"\n"
+        }
+        embed.setDescription(finalDescription)
+        return embed
+    }
+
+    public static boxOpened(w:Weapon,b:Box):MessageEmbed{
+        var embed = new MessageEmbed()
+        embed.setTitle("Box ouverte")
+        var finalDescription = "Vous avez ouvert la box: **"+b.emoji+" "+b.name.fr+"** et avez obtenu:\n\n"
+        finalDescription+=w.emoji+" "+w.name.fr
+        embed.setDescription(finalDescription)
         return embed
     }
 }

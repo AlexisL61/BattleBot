@@ -1,6 +1,7 @@
 import Discord, { MessageMentions } from "discord.js"
 import Cache from "./class/cache/Cache";
 import Database from "./class/database/Database";
+import MapManager from "./class/map/MapManager";
 import Player from "./class/player/Player";
 import PlayerCreator from "./class/player/PlayerCreator";
 
@@ -27,7 +28,9 @@ client.on("ready",()=>{
     Database.playerDatabase = playerDatabase
     Database.attackDatabase = mclient.db("Player").collection("Attack")
     Database.inventoryDatabase = mclient.db("Player").collection("Inventory")
+    Database.boxDatabase = mclient.db("Player").collection("Box")
     PlayerCreator.client = client
+    MapManager.client = client
 })
 
 client.on("message",async (message)=>{
