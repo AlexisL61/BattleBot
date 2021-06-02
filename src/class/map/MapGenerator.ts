@@ -1,5 +1,6 @@
 const noise = require("../../../static/library/noise.js")
 import Canvas from "canvas"
+import path from "path"
 
 export default class MapGenerator {
 
@@ -36,6 +37,8 @@ export default class MapGenerator {
         var ySize = 350
         var canvas = new Canvas.Canvas(xSize,ySize)
         var ctx = canvas.getContext("2d");
+        
+        Canvas.registerFont('./static/font/Roboto-Regular.ttf',{"family":"Roboto"})
         var divider = 1
         var zoomMultiplier = 1
         zoom = zoom * zoomMultiplier
@@ -219,11 +222,11 @@ export default class MapGenerator {
                 })
                 var choosen = currentTable[Math.floor(currentTable.length/2)]
                 console.log(choosen.x-startX,choosen.y-startY)
-                ctx.font = "11px Arial";
+                ctx.font = "11px Roboto";
                 ctx.textAlign = "center";
                 ctx.fillStyle = "black";
                 ctx.fillText(total[i].type, choosen.x-startX, choosen.y-startY);
-                ctx.font = "11px Arial";
+                ctx.font = "11px Roboto";
                 ctx.fillStyle = "white";
                 ctx.textAlign = "center";
                 ctx.fillText(total[i].type, choosen.x-startX+2, choosen.y-startY-2);
