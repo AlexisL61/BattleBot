@@ -1,4 +1,4 @@
-import noise  from "./library/noise.js"
+const noise = require("../../../static/library/noise.js")
 import Canvas from "canvas"
 
 export default class MapGenerator {
