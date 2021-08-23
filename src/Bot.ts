@@ -12,7 +12,7 @@ require("dotenv").config()
 
 var commands:Array<commandFile> = totalCommands
 
-const client = new Discord.Client()
+const client = new Discord.Client()  
 const prefix = "b!"
 
 const MongoClient = require('mongodb').MongoClient;

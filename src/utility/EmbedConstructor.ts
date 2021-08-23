@@ -126,4 +126,38 @@ export default class EmbedConstructor{
         embed.setDescription(finalDescription)
         return embed
     }
+
+    public static registerEmbed(type:number,data?:object):object{
+        var embed = {}
+        embed["title"] = "Inscription"
+        if (type == 0){
+            embed["description"] = "**__Raven__**:\n\"Bonjour et bienvenue sur BattleBot !\nJe suis Raven et je suis ici pour régler toute la paperasse avant de vous lancer sur l'ïle.\nOn y va ?\""
+            embed["color"] = 1455351
+        }
+        if (type == 1){
+            embed["description"] = "**__Raven__**:\n\"Parfait! Allons tout de suite du côté administratif...\nIl y a une charte à signer afin que tout le monde puisse jouer sans triche. Vous devez l'accepter avant de pouvoir commencer l'aventure.\nElle se trouve juste ici: INSERER LIEN ICI\n\nLa charte peut changer à tout moment donc n'hésitez pas à regarder le lien souvent.\""
+            embed["color"] = 1455351
+        }
+        if (type == 2){
+            embed["description"] = "**__Raven__**:\n\"Comme vous avez refusé la charte, vous ne pouvez pas participer à l'aventure BattleBot. N'hésitez pas à refaire la commande b!register et accepter la charte pour jouer!\nÀ une prochaine fois!\""
+            embed["color"] = 1455351
+        }
+        if (type == 3){
+            embed["description"] = "**__Raven__**:\n\"Super, j'ai tout ce qu'il me faut !\nVoici quelques petites infos pour finir: \n\nComme vous le savez peut-être, BattleBot est médiatisé. Nos présentateurs INSERER NOM ICI et INSERER UN AUTRE NOM ICI font vivre tout ce qu'il se passe sur l'ïle de BattleBot à travers le monde.\nTout ce qu'il s'est passé d'important pendant une journée est donc envoyé sur le serveur support de BattleBot.\n\nNous allons vous fournir aussi un 🤖 \"Lixo\". C'est un robot permettant de vous expliquer comment tout marche sur BattleBot avec l'aide de tutoriels. Il sera disponible lors de votre arrivée sur l'ïle.\n\nVoilà c'est tout ce que j'ai à dire... Un vaisseau de transport est maintenant disponible, vous allez pouvoir débarquer sur l'ïle.\nBonne chance de toute l'équipe de BattleBot !\""
+            embed["color"] = 1455351
+        }
+        if (type == 4){
+            embed["title"] = "Annonce"
+            embed["description"] = "**__INSERER NOM ICI__**:\n\"Attention tout le monde, un nouveau challenger vient d'entrer sur l'ïle. Accueillez chaleureusement <@"+data["id"]+"> !\""
+            embed["color"] = 16678913
+            embed["thumbnail"] = {"url":"https://cdn.discordapp.com/attachments/839604520245264404/850845362133663744/Megaphone.png"}
+        }
+        if (type == 5){
+            embed["title"] = "Arrivée sur l'ile"
+            embed["description"] = "Vous êtes arrivé sur l'ile en position: **"+data["pos"].x+" ; "+data["pos"].y+"**"
+            embed["color"] = 1455351,
+            embed["thumbnail"] = "https://cdn.discordapp.com/attachments/840535209723953172/854015410785484830/PointeurFinal.png"
+        }
+        return embed;
+    }
 }

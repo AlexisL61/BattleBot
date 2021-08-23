@@ -5,7 +5,8 @@ type databasePlayer = {
         health:number,
         shield:number,
     },
-    dead:boolean
+    dead:boolean,
+    position:{x:number,y:number}
 }
 
 var _playerDefault:databasePlayer= {
@@ -15,7 +16,8 @@ var _playerDefault:databasePlayer= {
         health:100,
         shield:0,
     },
-    dead:false
+    dead:false,
+    position:undefined
 }
 
 export default databasePlayer

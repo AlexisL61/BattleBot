@@ -2,6 +2,9 @@ const noise = require("../../../static/library/noise.js")
 import Canvas from "canvas"
 import path from "path"
 
+const montagneNames = ["Montagne", "Pic", "Mont", "Massif", "Sommet", "Crête", "Puy", "Colline"]
+const secondNames = ["Alegro", "Poiluire", "Liville", "Colossonne", "Villeurgnan", "Levarac", "Charbéliard", "Narvin", "Grebonne", "Greçon", "Frégny", "Vitroville", "Toutoise", "Morne", "Antoveil", "Bergemasse", "Saugues", "Borcourt", "Chanesse", "Narveil", "Austral", "Martives", "Colozon", "Clateaux"]
+
 export default class MapGenerator {
 
     public static async generateMap():Promise<Canvas.Canvas>{
@@ -220,16 +223,30 @@ export default class MapGenerator {
                 currentTable.sort(function(a,b){
                     return (b.x+b.y)-(a.x+a.y)
                 })
+                var firstNameChoosen = total[i].type
+                if (total[i].type == "montagne"){
+                    firstNameChoosen = montagneNames[Math.floor(Math.random()*montagneNames.length)]
+                }
+                var secondNameChoosen = ""
+                secondNameChoosen = secondNames[Math.floor(Math.random()*secondNames.length)]
                 var choosen = currentTable[Math.floor(currentTable.length/2)]
                 console.log(choosen.x-startX,choosen.y-startY)
                 ctx.font = "11px Roboto";
                 ctx.textAlign = "center";
                 ctx.fillStyle = "black";
-                ctx.fillText(total[i].type, choosen.x-startX, choosen.y-startY);
+                ctx.fillText(firstNameChoosen, choosen.x-startX, choosen.y-startY);
                 ctx.font = "11px Roboto";
                 ctx.fillStyle = "white";
                 ctx.textAlign = "center";
-                ctx.fillText(total[i].type, choosen.x-startX+2, choosen.y-startY-2);
+                ctx.fillText(firstNameChoosen, choosen.x-startX+2, choosen.y-startY-2);
+                ctx.font = "11px Roboto";
+                ctx.textAlign = "center";
+                ctx.fillStyle = "black";
+                ctx.fillText(secondNameChoosen, choosen.x-startX, choosen.y-startY+13);
+                ctx.font = "11px Roboto";
+                ctx.fillStyle = "white";
+                ctx.textAlign = "center";
+                ctx.fillText(secondNameChoosen, choosen.x-startX+2, choosen.y-startY-2+13);
             }
         }
     }

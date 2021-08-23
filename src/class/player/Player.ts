@@ -3,6 +3,7 @@ import databaseAttacker from "../../types/database/attacker";
 import databaseBox from "../../types/database/box";
 import databasePlayer from "../../types/database/player";
 import databaseWeapon from "../../types/database/weapon";
+import position from "../../types/position";
 import EmbedConstructor from "../../utility/EmbedConstructor";
 import Box from "../box/Box";
 import Cache from "../cache/Cache";
@@ -18,6 +19,7 @@ export default class Player {
     private _inventory: Array<Weapon> = [new Weapon("cailloux"),new Weapon("cailloux"),new Weapon("cailloux"), new Weapon("bandage")];
     private _lastChannel: TextChannel | DMChannel | NewsChannel;
     private _box: Array<Box>;
+    private _position:position;
     
 
     /**
@@ -231,6 +233,11 @@ export default class Player {
         return {"health":finalHealth,"shield":finalShield}
     }
 
+    public setRandomPosition(){
+        this.position = {"x":Math.floor(Math.random()*300+100),"y":Math.floor(Math.random()*300+100)}
+        this.save()
+    }
+
     public get box(): Array<Box> {
         return this._box;
     }
@@ -270,6 +277,26 @@ export default class Player {
     public set inventory(value: Array<Weapon>) {
         this._inventory = value;
     }
+
+    
+
+    /**
+     * Getter $position
+     * @return {position}
+     */
+	public get position(): position {
+		return this._position;
+	}
+
+    /**
+     * Setter $position
+     * @param {position} value
+     */
+	public set position(value: position) {
+		this._position = value;
+	}
+
+
 
     
     public get lastChannel(): TextChannel | NewsChannel | DMChannel {
