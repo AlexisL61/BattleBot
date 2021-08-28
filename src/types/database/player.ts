@@ -1,3 +1,5 @@
+import position from "../position"
+
 type databasePlayer = {
     id:string,
     coins:number,
@@ -6,7 +8,8 @@ type databasePlayer = {
         shield:number,
     },
     dead:boolean,
-    position:{x:number,y:number}
+    position:{x:number,y:number},
+    movement?:{position:position,start:number}
 }
 
 var _playerDefault:databasePlayer= {

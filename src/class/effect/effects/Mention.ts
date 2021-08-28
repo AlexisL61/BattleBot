@@ -24,24 +24,22 @@ export default class Mention extends Effect{
 
     public async applyEffect(player: Player, target:Player,mentions:Array<string>): Promise<useEffect> {
         if (mentions.length==0){
-            await player.lastChannel.send(EmbedConstructor.waitMention(this.toMention))
-            var messageFound = await player.lastChannel.awaitMessages((m:Message)=>m.author.id == player.id,{"max":1})
-            if (messageFound.first().mentions && messageFound.first().mentions.members && messageFound.first().mentions.members.first()){
-                var result = await this.child.applyEffect(player,await Cache.playerFind( messageFound.first().mentions.members.first().id),[])
-                if (result.success){
-                    return {"success":true,data:{"message":result.data.message,"dead":result.data.dead}}
-                }
+            await player.lastChannel.send({embeds:[await EmbedConstructor.waitMention(this.toMention,player,player.lastChannel.guild)]})
+            var messageFound = await player.lastChannel.awaitMessages({filter:(m:Message)=>m.author.id == player.id,"max":1})
+            if (parseInt(messageFound.first().content)){
+                mentions.push((await player.getAttackablePlayers(player.lastChannel.guild))[parseInt(messageFound.first().content)-1].discordUser.id)
             }else{
-
+                return {"success":false}
             }
-        }else{
+        }
             var target = await Cache.playerFind(mentions[0]);
             mentions.splice(0,1)
+            if (player.isAttackable().result==false) return {"success":false,data:{"message":"Ce joueur a un bouclier, il n'est pas attaquable"}}
+            if (player.getDistance(target.getRealPosition())>Player.visibilityRadius) return {"success":false}
             var result = await this.child.applyEffect(player,target,mentions)
             if (result.success){
                 return {"success":true,data:{"message":result.data.message,"dead":result.data.dead,"mentionsUsed":1}}
             }
-        }
     }
     
 }

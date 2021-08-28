@@ -1,9 +1,11 @@
-import { MessageEmbed } from "discord.js";
+import { Guild, MessageEmbed } from "discord.js";
 import Box from "../class/box/Box";
+import Map from "../class/map/Map";
 import Player from "../class/player/Player";
 import Weapon from "../class/weapon/Weapon";
 import box from "../commands/box";
 import { rarities } from "../static/rarityList";
+import position from "../types/position";
 import weaponType from "../types/weaponType";
 
 export default class EmbedConstructor{
@@ -16,6 +18,8 @@ export default class EmbedConstructor{
         var lifeStats = player.getLifeBarre()
         embed.addField("Stats vie",lifeStats.health+" "+player.data.lifeStats.health+" ❤️\n"+lifeStats.shield+" "+player.data.lifeStats.shield+" 🛡️\n")
         embed.addField("Argent",player.data.coins+" 💸")
+        var attackableData = player.isAttackable()
+        embed.addField("Protection",attackableData.result?"Aucune protection":attackableData.reason+"( fin <t:"+Math.floor(attackableData.end/1000)+":R>)")
        return embed;
     }
 
@@ -32,6 +36,13 @@ export default class EmbedConstructor{
         embed.setDescription("Vous avez été tué par le joueur **"+killer.discordUser.tag+"**\nVous avec perdu un total de "+coins+" 💸")
         return embed;
     }
+
+    public static askWeapon(p:Player):MessageEmbed{
+        var embed = EmbedConstructor.playerInventory(p)
+        embed.setDescription("Choisissez l'arme à utiliser")
+        return embed
+    }
+
 
     public static weaponNotFound():MessageEmbed{
         var embed = new MessageEmbed()
@@ -92,10 +103,40 @@ export default class EmbedConstructor{
         return embed
     }
 
-    public static waitMention(toMention:string):MessageEmbed{
+    public static attackCooldown():MessageEmbed{
         var embed = new MessageEmbed()
-        embed.setTitle("Mention requise")
-        embed.setDescription("Veuillez mentionner "+toMention+" dans votre prochain message")
+        embed.setTitle("Cooldown")
+        embed.setDescription("Vous ne pouvez pas attaquer car vous êtes actuellement sous cooldown (plus d'infos avec b!cooldown)")
+        return embed
+    }
+
+    public static async waitMention(toMention:string,p:Player,server:Guild):Promise<MessageEmbed>{
+        var embed = new MessageEmbed()
+        embed.setTitle("Cible requise")
+        var opponents = await p.getAttackablePlayers(server)
+        var opponentsList = ""
+        for (var i in opponents){
+            opponentsList+=((parseInt(i)+1)+" : "+opponents[i].discordUser.tag+"\n")
+        }
+        embed.setDescription("**Choisissez : "+toMention+"**\n\n"+opponentsList)
+        var imageBuffer = await Map.currentMap.createFromCoords(p.getRealPosition(),5,{playerLocation:p.getRealPosition(),opponents:opponents,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined,showOpponentsNum:true})
+        var imageURL = await Map.hostBuffer(imageBuffer)
+        embed.setImage(imageURL)
+        return embed
+    }
+
+    public static async mapNearEnnemy(p:Player,server:Guild):Promise<MessageEmbed>{
+        var embed = new MessageEmbed()
+        embed.setTitle("Joueur(s) à côté de vous")
+        var opponents = await p.getAttackablePlayers(server)
+        var opponentsList = ""
+        for (var i in opponents){
+            opponentsList+=((parseInt(i)+1)+" : "+opponents[i].discordUser.tag+"\n")
+        }
+        embed.setDescription(opponentsList)
+        var imageBuffer = await Map.currentMap.createFromCoords(p.getRealPosition(),2.5,{playerLocation:p.getRealPosition(),opponents:opponents,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined,showOpponentsNum:true})
+        var imageURL = await Map.hostBuffer(imageBuffer)
+        embed.setImage(imageURL)
         return embed
     }
 
@@ -159,5 +200,37 @@ export default class EmbedConstructor{
             embed["thumbnail"] = "https://cdn.discordapp.com/attachments/840535209723953172/854015410785484830/PointeurFinal.png"
         }
         return embed;
+    }
+
+    public static async mapEmbed(p:Player,attackablePlayers?:Array<Player>){
+        var embed = new MessageEmbed()
+        embed.setTitle("Map")
+        if (p.data.movement){
+            embed.setDescription("Votre position: "+p.getRealPosition().x+" ; "+p.getRealPosition().y+".\nVous vous déplacez actuellement vers : "+p.data.movement.position.x+" ; "+p.data.movement.position.y+". Vous y arriverez "+p.getTimeLeft())
+        }else{
+            embed.setDescription("Votre position: "+p.getRealPosition().x+" ; "+p.getRealPosition().y)
+        }
+        if (Map.searchExistentMap(p.getRealPosition(),2.5,p) && attackablePlayers == undefined){
+            embed.setImage(Map.searchExistentMap(p.getRealPosition(),2.5,p))
+        }else{
+            var imageBuffer = await Map.currentMap.createFromCoords(p.getRealPosition(),2.5,{playerLocation:p.getRealPosition(),opponents:attackablePlayers,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined})
+            var imageURL = await Map.hostBuffer(imageBuffer,{player:p,pos:p.getRealPosition(),z:2.5})
+            embed.setImage(imageURL)
+        }
+        return embed
+    }
+
+    public static async mapMoveEmbed(p:Player, pos:position,zoom:number,opponents?:Array<Player>){
+        var embed = new MessageEmbed()
+        embed.setTitle("Map - Déplacement")
+        embed.setDescription("Votre position: "+p.getRealPosition().x+" ; "+p.getRealPosition().y+"\nPosition de la caméra: "+pos.x+" ; "+pos.y)
+        if (Map.searchExistentMap(pos,zoom,p) && opponents==undefined){
+            embed.setImage(Map.searchExistentMap(pos,zoom,p))
+        }else{
+            var imageBuffer = await Map.currentMap.createFromCoords(pos,zoom,{playerLocation:p.getRealPosition(),opponents:opponents,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined})
+            var imageURL = await Map.hostBuffer(imageBuffer,{player:p,pos:pos,z:zoom})
+            embed.setImage(imageURL)
+        }
+        return embed
     }
 }

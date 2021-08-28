@@ -1,10 +1,12 @@
 import { Client, Collection } from "discord.js";
+import position from "../../types/position";
 import Player from "../player/Player";
 import PlayerCreator from "../player/PlayerCreator";
 
 export default class Cache {
     static client:Client;
     static players: Collection<string, Player> = new Collection();
+    static mapCards:Collection<string,string> = new Collection();
 
     /**
      * Récupère le joueur dans le cache, créé un nouveau joueur sinon
@@ -16,7 +18,7 @@ export default class Cache {
             return this.players.get(id)
         }else{
             const thisPlayer = await PlayerCreator.fromId(id)
-            this.addPlayer(thisPlayer)
+            if (thisPlayer!=undefined) this.addPlayer(thisPlayer)
             return thisPlayer
         }
     }
@@ -33,5 +35,17 @@ export default class Cache {
         }else{
             return false
         }
+    }
+
+    static mapFind(p:Player,pos:position,z:number):string{
+        if (this.mapCards.has(p.id+"-"+pos.x+"-"+pos.y+"-"+z)){
+            return this.mapCards.get(p.id+"-"+pos.x+"-"+pos.y+"-"+z)
+        }else{
+            return undefined
+        }
+    }
+
+    static mapAdd(p:Player,pos:position,z:number,s:string){
+        this.mapCards.set(p.id+"-"+pos.x+"-"+pos.y+"-"+z,s)
     }
 }

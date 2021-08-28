@@ -10,8 +10,8 @@ export = async function(data:commandSender){
         thisPlayer.data.lifeStats.health = 100
         thisPlayer.data.dead = false
         await thisPlayer.save()
-        data.message.channel.send(EmbedConstructor.respawnSuccess())
+        data.message.channel.send({embeds:[EmbedConstructor.respawnSuccess()]})
     }else{
-        data.message.channel.send(EmbedConstructor.respawnFailed())
+        data.message.channel.send({embeds:[EmbedConstructor.respawnFailed()]})
     }
 }

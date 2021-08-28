@@ -1,4 +1,4 @@
-import { MessageMentions } from "discord.js";
+import { MessageMentions, TextChannel, ThreadChannel } from "discord.js";
 import Cache from "../class/cache/Cache";
 import PlayerCreator from "../class/player/PlayerCreator";
 import Weapon from "../class/weapon/Weapon";
@@ -10,6 +10,10 @@ import EmbedConstructor from "../utility/EmbedConstructor";
 export = async function(data:commandSender){
     const userId = data.message.author.id
     var thisPlayer = await Cache.playerFind(userId)
+    console.log(thisPlayer.hasCooldown("ATTACK"))
+    if (thisPlayer.hasCooldown("ATTACK").result==true){
+        return data.message.channel.send({embeds:[EmbedConstructor.attackCooldown()]})
+    }
     var weaponTable = data.message.content.split(" ")
     weaponTable.splice(0,1)
     var weaponString = weaponTable.join(" ")
@@ -20,22 +24,31 @@ export = async function(data:commandSender){
         })
     }
     weaponString = weaponString.trim()
-    console.log(weaponString)
     var weaponFound = Weapon.findWeapon(weaponString)
+    if (!weaponFound){
+        await data.message.channel.send({embeds:[EmbedConstructor.askWeapon(thisPlayer)]})
+        var messageCollected =await data.message.channel.awaitMessages({filter:(m)=>m.author.id == data.message.author.id,max:1})
+        weaponFound = Weapon.findWeapon(messageCollected.first().content)
+        weaponString = messageCollected.first().content
+    }
     if (weaponFound){
         var weaponIndex = thisPlayer.searchInInventory(weaponString)
+        console.log(thisPlayer.inventory)
         if (weaponIndex!=-1){
             var weapon = thisPlayer.inventory[weaponIndex]
-            thisPlayer.lastChannel = data.message.channel
+            if (data.message.channel instanceof TextChannel || data.message.channel instanceof ThreadChannel){
+                thisPlayer.lastChannel = data.message.channel
+            }
             var resultUse:useWeapon = await weapon.use(thisPlayer,data.message)
+            data.message.channel.send({embeds:[EmbedConstructor.weaponUse(weapon,resultUse.data.message)]})
             if (resultUse.success){
-                data.message.channel.send(EmbedConstructor.weaponUse(weapon,resultUse.data.message))
+                thisPlayer.addCooldown("ATTACK",5*60)
                 thisPlayer.removeInInventory(weaponIndex)
             }
         }else{
-            data.message.channel.send(EmbedConstructor.weaponNotFoundInInventory(Weapon.getWeaponData(weaponFound)))
+            data.message.channel.send({embeds:[EmbedConstructor.weaponNotFoundInInventory(Weapon.getWeaponData(weaponFound))]})
         }
     }else{
-        data.message.channel.send(EmbedConstructor.weaponNotFound())
+        data.message.channel.send({embeds:[EmbedConstructor.weaponNotFound()]})
     }
 }

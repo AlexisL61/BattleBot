@@ -30,6 +30,7 @@ export default class Damage extends Effect{
         }
         var randomNumber = Math.random()*100
         var status = "damage"
+        await target.addShield(this.damage*60)
         if (randomNumber<this.missPercent){
             status = "miss"
             return {"success":true,"data":{"message":"💥 *0 dégâts effectués* sur "+target.discordUser.tag+" (attaque ratée)","dead":false}}

@@ -42,11 +42,15 @@ export default class Weapon {
         }
         var effectResult = await this.effect.applyEffect(player,player,messageMentions)
         var finalMessage = ""
-        finalMessage += effectResult.data.message+"\n"
-        if (effectResult.data.dead){
-            finalMessage+="\n☠ "+player.discordUser.tag+" est mort\nVos récompenses se trouvent en mp!"
+        if (effectResult.success==false){
+            return {"success":true,"data":{"message":"Utilisation d'arme annulée"}}
+        }else{
+            finalMessage += effectResult.data.message+"\n"
+            if (effectResult.data.dead){
+                finalMessage+="\n☠ "+player.discordUser.tag+" est mort\nVos récompenses se trouvent en mp!"
+            }
+            return {"success":true,"data":{"message":finalMessage}}
         }
-        return {"success":true,"data":{"message":finalMessage}}
 
         /*var userArray = message.match(MessageMentions.USERS_PATTERN) || [];
         if (userArray.length == this.mentions.filter(m=>m.type=="user").length){

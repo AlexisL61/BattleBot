@@ -1,13 +1,217 @@
 const noise = require("../../../static/library/noise.js")
-import Canvas from "canvas"
+import Canvas, { loadImage } from "canvas"
 import path from "path"
+import position from "../../types/position"
+import Player from "../player/Player"
 
 const montagneNames = ["Montagne", "Pic", "Mont", "Massif", "Sommet", "Crête", "Puy", "Colline"]
 const secondNames = ["Alegro", "Poiluire", "Liville", "Colossonne", "Villeurgnan", "Levarac", "Charbéliard", "Narvin", "Grebonne", "Greçon", "Frégny", "Vitroville", "Toutoise", "Morne", "Antoveil", "Bergemasse", "Saugues", "Borcourt", "Chanesse", "Narveil", "Austral", "Martives", "Colozon", "Clateaux"]
 
 export default class MapGenerator {
 
-    public static async generateMap():Promise<Canvas.Canvas>{
+    public static async generateMapFromCoords(xMov,yMov,zoomP,denivele,forest,montagne,options:{opponents?:Array<Player>,playerLocation:position,pointers?:Array<{icon:string,size:number,pos:position}>,showOpponentsNum?:boolean}){
+        const denivelePossibility = ["51","52","53","54","55","56","57","58","59","5A","5B","5C","5D","5E","5F","61","62","63","64","65","66","67","68","69","6A","6B","6C","6D","6E","6F","71","72","73","74","75","76","77","78","79","7A","7B","7C","7D","7E","7F","81","82","83","84","85","86","87","88","89","8A","8B","8C","8D","8E","8F","91","92","93","94","95","96","97","98","99","9A","9B","9C","9D","9E","9F","A1","A2","A3","A4","A5","A6","A7","A8","A9","AA","AB","AC","AD","AE","AF"]
+        const montagnePossibility = ["51","52","53","54","55","56","57","58","59","5A","5B","5C","5D","5E","5F","61","62","63","64","65","66","67","68","69","6A","6B","6C","6D","6E","6F","71","72","73","74","75","76","77","78","79","7A","7B","7C","7D","7E","7F","81","82","83","84","85","86","87","88","89","8A","8B","8C","8D","8E"]
+        
+        const waterPossibility = ["51","52","53","54","55","56","57","58","59","5A","5B","5C","5D","5E","5F","61","62","63","64","65","66","67","68","69","6A","6B","6C","6D","6E","6F","71","72","73","74","75","76","77","78","79","7A","7B","7C","7D","7E","7F","81","82","83","84","85","86","87","88","89","8A","8B","8C","8D","8E","8F","91","92","93","94","95","96","97","98","99","9A","9B","9C","9D","9E","9F","A1","A2","A3","A4","A5","A6","A7","A8","A9","AA","AB","AC","AD","AE","AF"]
+        
+        denivelePossibility.reverse()
+        waterPossibility.reverse()
+
+        var alreadyOccupied = []
+        var ccc = 6
+        //console.log(175/zoomP)
+        var startX = 45+xMov/10+100-100/zoomP;
+        var startY = 500+yMov/10+100-100/zoomP;
+        var zoom = 510
+        var mapSeed = 7349
+        noise.seed(mapSeed)
+
+        var deniveleSeed = denivele
+        var deniveleZoom = 200
+
+        var forestSeed = forest
+        var forestZoom = 500
+
+        var montagneSeed = montagne
+        var montagneZoom = 200
+        var zoomMultiplier = 1
+        
+        var nameToNameTable = []
+        var xSize = 200
+        var ySize = 200
+        var canvas = new Canvas.Canvas(xSize,ySize)
+        var ctx = canvas.getContext("2d");
+        
+        Canvas.registerFont('./static/font/Roboto-Regular.ttf',{"family":"Roboto"})
+        var divider = zoomP
+        zoom = zoom * zoomMultiplier
+        await aaa(ccc)
+        async function aaa(count){
+            var last
+            var color:string
+            for (var x = 0+startX; x < xSize/divider+startX; x=x+(1/divider)) {
+                //console.log(x,1/divider)
+                for (var y = 0+startY; y < ySize/divider+startY; y=y+(1/divider)) {
+                    var type = undefined
+                    var paintSize = 1
+                    noise.seed(mapSeed)
+                    var value = Math.abs(noise.simplex3(x / zoom, y / zoom,count/400));
+
+                    // Valeur: eau
+                    if (value<0.2){
+                        color = "#0000"+waterPossibility[Math.floor((value*1.5)*waterPossibility.length)]
+                    }
+                    //valeur: plaine
+                    if (value>0.2 && value<1){
+
+                        noise.seed(deniveleSeed)
+                        var deniveleValue = Math.abs(noise.simplex3((x) / deniveleZoom, (y) / deniveleZoom,count/400));
+                        if (deniveleValue<0.02){
+                            //valeur: rivière
+                            type= "riviere"
+                            color =  "#0000"+waterPossibility[Math.floor((deniveleValue*1.5)*waterPossibility.length)]
+                        }else{
+                            //valeur plaine
+                            if (deniveleValue > 0.8){
+                                noise.seed(montagneSeed)
+                                var montagneValue = Math.abs(noise.simplex2((x) / montagneZoom, (y) / montagneZoom));
+                                if (montagneValue>0.5){
+                                    type= "montagne"
+                                    var uniValue = montagneValue - 0.5+deniveleValue-0.8
+                                    var uniColor = montagnePossibility[Math.floor(montagnePossibility.length*uniValue/0.7)]
+                                    color = "#"+uniColor+uniColor+uniColor
+                                }else{
+                                    noise.seed(forestSeed)
+                                var forestValue = Math.abs(noise.simplex2((x) / forestZoom, (y) / forestZoom));
+                                if (forestValue > 0.75) type= "forest"
+                                
+                                if (forestValue > 0.75 && Math.random()>0.75 && !alreadyOccupied.find(a=>a.x==x && a.y==y)){
+                                    //valeur foret
+                                    //Ajout point foret
+                                    type = "forest"
+                                    paintSize = Math.floor(Math.random()*4)+1
+                                    color = "#013d03"
+                                    for (var i = 0;i<paintSize/divider;i=i+1/divider){
+                                        for (var j = 0;j<paintSize/divider;j=j+1/divider){
+                                            if (i!=0 && j!=0){
+                                                alreadyOccupied.push({x:x+i,y:y+j})
+                                            }
+                                        }
+                                    }
+                                }else{
+                                    if (!type) type= "plaine"
+                                    color = "#00"+denivelePossibility[Math.floor(deniveleValue*denivelePossibility.length)]+"00"
+                                }
+                                }
+                            }else{
+                                noise.seed(forestSeed)
+                                var forestValue = Math.abs(noise.simplex2((x) / forestZoom, (y) / forestZoom));
+                                if (forestValue > 0.75) type= "forest"
+                                if (forestValue > 0.75 && Math.random()>0.75 && !alreadyOccupied.find(a=>a.x==x && a.y==y)){
+                                    //valeur foret
+                                    //Ajout point foret
+                                    type= "forest"
+                                    paintSize = Math.floor(Math.random()*4)+1
+                                    color = "#013d03"
+                                    for (var i = 0;i<paintSize/divider;i=i+1/divider){
+                                        for (var j = 0;j<paintSize/divider;j=j+1/divider){
+                                            if (i!=0 && j!=0){
+                                                alreadyOccupied.push({x:x+i,y:y+j})
+                                            }
+                                        }
+                                    }
+                                }else{
+                                    if (!type) type= "plaine"
+                                    color = "#00"+denivelePossibility[Math.floor(deniveleValue*denivelePossibility.length)]+"00"
+                                }
+                            }
+                        }
+                    }
+                    if (!alreadyOccupied.find(a=>a.x==x && a.y==y)){
+                        //console.log((x-xMov-startX)*divider)
+                        ctx.beginPath();
+                        ctx.fillStyle = color;
+                        ctx.fillRect(((x-startX)*divider),((y-startY)*divider), paintSize, paintSize);
+                        //console.log((x)-startX,(y*divider)-startY)
+                        ctx.stroke();
+                        //console.log(options.playerLocation.x,options.playerLocation.y,x,y)
+                        if (Math.sqrt(Math.pow(x-45-(options.playerLocation.x+1000)/10,2)+Math.pow(y-500-(options.playerLocation.y+1000)/10,2))<=Player.visibilityRadius/10){
+                            //console.log(true)
+                            ctx.beginPath();
+                            ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+                            ctx.fillRect(((x-startX)*divider),((y-startY)*divider), paintSize, paintSize);
+                            //console.log((x)-startX,(y*divider)-startY)
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+            if (options && options.playerLocation){
+                var startXLocal = startX - 45
+                var startYLocal = startY-500
+                var playerLocalX = (options.playerLocation.x+1000) /10
+                var playerLocalY = (options.playerLocation.y+1000) /10
+                var finalX = xSize/divider+startX-45
+                var finalY =  ySize/divider+startY-500
+                if (playerLocalX>startXLocal && playerLocalX<finalX && playerLocalY>startYLocal && playerLocalY<finalY){
+                    console.log(playerLocalX-startXLocal,playerLocalY-startYLocal)
+                    ctx.beginPath();
+                    ctx.fillStyle = "#0000FF";
+                    ctx.fillRect((playerLocalX-startXLocal)*xSize/(finalX-startXLocal)-5,(playerLocalY-startYLocal)*ySize/(finalY-startYLocal)-5,10,10)
+                    ctx.stroke()
+                }
+            }
+            if (options && options.opponents){
+                var startXLocal = startX - 45
+                var startYLocal = startY-500
+                var finalX = xSize/divider+startX-45
+                var finalY =  ySize/divider+startY-500
+                for (var o in options.opponents){
+                    var playerLocalX = (options.opponents[o].getRealPosition().x+1000) /10
+                    var playerLocalY = (options.opponents[o].getRealPosition().y+1000) /10
+                    if (Math.sqrt(Math.pow(options.opponents[o].getRealPosition().x-options.playerLocation.x,2)+Math.pow(options.opponents[o].getRealPosition().y-options.playerLocation.y,2))<=Player.visibilityRadius && playerLocalX>startXLocal && playerLocalX<finalX && playerLocalY>startYLocal && playerLocalY<finalY){
+                        console.log(playerLocalX-startXLocal,playerLocalY-startYLocal)
+                        ctx.beginPath();
+                        ctx.fillStyle = "#FF0000";
+                        ctx.fillRect((playerLocalX-startXLocal)*xSize/(finalX-startXLocal)-5,(playerLocalY-startYLocal)*ySize/(finalY-startYLocal)-5,10,10)
+                        ctx.stroke()
+                        ctx.fillStyle = "#FFFFFF";
+                        ctx.textAlign = 'center'
+                        ctx.font = "10px"
+                        if (options.showOpponentsNum==true){
+                            ctx.fillText((parseInt(o)+1).toString(),(playerLocalX-startXLocal)*xSize/(finalX-startXLocal),(playerLocalY-startYLocal)*ySize/(finalY-startYLocal)+15,10)
+                        }
+                    }
+                }
+            }
+            if (options.playerLocation.x != xMov || options.playerLocation.y != yMov){
+                var imageLoaded = await loadImage("./static/images/map/pointer.png")
+                ctx.drawImage(imageLoaded,80,60,40,40)
+            }
+            if (options.pointers){
+                var startXLocal = startX - 45
+                var startYLocal = startY-500
+                var finalX = xSize/divider+startX-45
+                var finalY =  ySize/divider+startY-500
+                for (var p in options.pointers){
+                    var playerLocalX = (options.pointers[p].pos.x+1000) /10
+                    var playerLocalY = (options.pointers[p].pos.y+1000) /10
+                    if (playerLocalX>startXLocal && playerLocalX<finalX && playerLocalY>startYLocal && playerLocalY<finalY){
+                        var imageLoaded = await loadImage("./static/images/map/pointer.png")
+                        ctx.drawImage(imageLoaded,(playerLocalX-startXLocal)*xSize/(finalX-startXLocal)-options.pointers[p].size/2,(playerLocalY-startYLocal)*ySize/(finalY-startYLocal)-options.pointers[p].size,options.pointers[p].size,options.pointers[p].size)
+                        var iconLoaded = await loadImage(options.pointers[p].icon)
+                        ctx.drawImage(iconLoaded,(playerLocalX-startXLocal)*xSize/(finalX-startXLocal)-options.pointers[p].size/4/2,(playerLocalY-startYLocal)*ySize/(finalY-startYLocal)-options.pointers[p].size/1.5,options.pointers[p].size/4,options.pointers[p].size/4)
+                        
+                    }
+                }
+            }
+        }
+        //console.log(canvas)
+        return canvas.toBuffer()
+    }
+
+    public static async generateMap():Promise<{canvas:Canvas.Canvas,deniveleSeed:number,forestSeed:number,montagneSeed:number}>{
         var allPoints = {}
         const denivelePossibility = ["51","52","53","54","55","56","57","58","59","5A","5B","5C","5D","5E","5F","61","62","63","64","65","66","67","68","69","6A","6B","6C","6D","6E","6F","71","72","73","74","75","76","77","78","79","7A","7B","7C","7D","7E","7F","81","82","83","84","85","86","87","88","89","8A","8B","8C","8D","8E","8F","91","92","93","94","95","96","97","98","99","9A","9B","9C","9D","9E","9F","A1","A2","A3","A4","A5","A6","A7","A8","A9","AA","AB","AC","AD","AE","AF"]
         const montagnePossibility = ["51","52","53","54","55","56","57","58","59","5A","5B","5C","5D","5E","5F","61","62","63","64","65","66","67","68","69","6A","6B","6C","6D","6E","6F","71","72","73","74","75","76","77","78","79","7A","7B","7C","7D","7E","7F","81","82","83","84","85","86","87","88","89","8A","8B","8C","8D","8E"]
@@ -250,6 +454,6 @@ export default class MapGenerator {
             }
         }
     }
-    return canvas
+    return {canvas:canvas,forestSeed:forestSeed,deniveleSeed:deniveleSeed,montagneSeed:montagneSeed}
     }
 }

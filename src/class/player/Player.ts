@@ -1,4 +1,4 @@
-import { DMChannel, MessageEmbed, NewsChannel, TextChannel, User } from "discord.js";
+import { DMChannel, Guild, MessageEmbed, NewsChannel, TextBasedChannels, TextChannel, ThreadChannel, User } from "discord.js";
 import databaseAttacker from "../../types/database/attacker";
 import databaseBox from "../../types/database/box";
 import databasePlayer from "../../types/database/player";
@@ -9,17 +9,20 @@ import Box from "../box/Box";
 import Cache from "../cache/Cache";
 import Database from "../database/Database";
 import Weapon from "../weapon/Weapon";
-import PlayerCreator from "./PlayerCreator";
 
 
 export default class Player {
+    static rapidity:number = 1
+    static visibilityRadius:number = 300
+
     private _id: string;
     private _discordUser: User;
     private _data: databasePlayer;
     private _inventory: Array<Weapon> = [new Weapon("cailloux"),new Weapon("cailloux"),new Weapon("cailloux"), new Weapon("bandage")];
-    private _lastChannel: TextChannel | DMChannel | NewsChannel;
+    private _servers:Array<string> = []
+    private _cooldowns: Array<cooldown> = [];
+    private _lastChannel: TextChannel|ThreadChannel;
     private _box: Array<Box>;
-    private _position:position;
     
 
     /**
@@ -116,6 +119,26 @@ export default class Player {
     //--------------------------//
     //---------Attaques---------//
     //--------------------------//
+    public async loadCooldowns(){
+        var cooldownsFound = await Database.playerCooldownDatabase.find({player:this.id}).toArray()
+        this.cooldowns = cooldownsFound
+    }
+
+    public async getAttackablePlayers(server:Guild){
+        var players:Array<Player> = []
+        var playerServers = await Database.playerServerDatabase.find({server:server.id}).toArray()
+        for (var i in playerServers){
+            if (playerServers[i].player!=this.id && await server.members.fetch(playerServers[i].player)){
+                var splayer = await Cache.playerFind(playerServers[i].player)
+                console.log(this.getDistance(splayer.getRealPosition()))
+                if (splayer!=undefined && this.getDistance(splayer.getRealPosition())<=Player.visibilityRadius){
+                    players.push(splayer)
+                }
+            }
+        }
+        return players
+    }
+
     public async addAttackDone(target:string, damage:number){
         var attackAlreadyDone:databaseAttacker = await Database.attackDatabase.findOne({"attacker":this._id, "target":target})
         if (attackAlreadyDone!=undefined){
@@ -136,6 +159,56 @@ export default class Player {
             }
         }
         this.save()
+    }
+
+    public async addCooldown(type:"SHIELD"|"ATTACK",seconds:number){
+        if (this._cooldowns.find(c=>c.type==type)){
+            if (this._cooldowns.find(c=>c.type==type && c.endTime>Date.now())){
+                this._cooldowns.find(c=>c.type==type && c.endTime>Date.now()).endTime+=seconds*1000
+            }else{
+                this._cooldowns.find(c=>c.type==type).endTime = Date.now()+seconds*1000
+            }
+        }else{
+            this._cooldowns.push({"type":type,"endTime":Date.now()+seconds*1000,player:this.id})
+        }
+        if (await Database.playerCooldownDatabase.findOne({"type":type,"player":this.id})){
+            await Database.playerCooldownDatabase.updateOne({"type":type,"player":this.id},{"$set":{endTime:this._cooldowns.find(c=>c.type==type).endTime}})
+        }else{
+            await Database.playerCooldownDatabase.insertOne({"type":type,"endTime":Date.now()+seconds*1000,player:this.id})
+        }
+    }
+
+    public async addShield(seconds:number){
+        if (this._cooldowns.find(c=>c.type=="SHIELD")){
+            if (this._cooldowns.find(c=>c.type=="SHIELD" && c.endTime>Date.now())){
+                this._cooldowns.find(c=>c.type=="SHIELD" && c.endTime>Date.now()).endTime+=seconds*1000
+            }else{
+                this._cooldowns.find(c=>c.type=="SHIELD").endTime = Date.now()+seconds*1000
+            }
+        }else{
+            this._cooldowns.push({"type":"SHIELD","endTime":Date.now()+seconds*1000,player:this.id})
+        }
+        if (await Database.playerCooldownDatabase.findOne({"type":"SHIELD","player":this.id})){
+            await Database.playerCooldownDatabase.updateOne({"type":"SHIELD","player":this.id},{"$set":{endTime:this._cooldowns.find(c=>c.type=="SHIELD").endTime}})
+        }else{
+            await Database.playerCooldownDatabase.insertOne({"type":"SHIELD","endTime":Date.now()+seconds*1000,player:this.id})
+        }
+    }
+
+    public hasCooldown(type:"SHIELD"|"ATTACK"):{ result: boolean; end: number; }{
+        if (this.cooldowns.find(c=>c.type==type && c.endTime>Date.now())){
+            return {result:true,end:this.cooldowns.find(c=>c.type==type && c.endTime>Date.now()).endTime}
+        }else{
+            return {result:false,end:-1}
+        }
+    }
+
+    public isAttackable():{ result: boolean; reason: string; end: number; }{
+        if (this.cooldowns.find(c=>c.type=="SHIELD" && c.endTime>Date.now())){
+            return {result:false,reason:"Bouclier d'attaque",end:this.cooldowns.find(c=>c.type=="SHIELD" && c.endTime>Date.now()).endTime}
+        }else{
+            return {result:true, reason:"",end:-1}
+        }
     }
 
     public checkIfDead(killer:Player):boolean{
@@ -234,8 +307,54 @@ export default class Player {
     }
 
     public setRandomPosition(){
-        this.position = {"x":Math.floor(Math.random()*300+100),"y":Math.floor(Math.random()*300+100)}
+        this.data.position = {"x":Math.floor(Math.random()*3000-1500),"y":Math.floor(Math.random()*3000-1500)}
         this.save()
+    }
+
+    public async addServer(id:string){
+        if (await Database.playerServerDatabase.findOne({"server":id,"player":this.id})){
+        }else{
+            await Database.playerServerDatabase.insertOne({"server":id,"player":this.id})
+        }
+    }
+
+    public getTimeLeft():string{
+        if (!this.data.movement) return "<t:"+(Date.now()/1000)+":R>"
+        var distanceFinale = Math.sqrt(Math.pow(this.data.position.x-this.data.movement.position.x,2)+Math.pow(this.data.position.y-this.data.movement.position.y,2))*Player.rapidity
+        
+        return "<t:"+(Math.floor(Date.now()/1000)+Math.floor(distanceFinale)-Math.floor((Date.now()-this.data.movement.start)/1000))+":R>"
+    }
+
+    public getDistance(pos:position):number{
+        var distanceFinale = Math.sqrt(Math.pow(this.getRealPosition().x-pos.x,2)+Math.pow(this.getRealPosition().y-pos.y,2))
+        return distanceFinale
+    }
+
+    public getRealPosition():position{
+        if (!this.data.movement){
+            return this.data.position
+        }
+        if (this.data.movement.position.x==this.data.position.x && this.data.position.y==this.data.movement.position.y){
+            this.data.movement = undefined
+            return this.data.position
+        }
+        var distanceFinale = Math.sqrt(Math.pow(this.data.position.x-this.data.movement.position.x,2)+Math.pow(this.data.position.y-this.data.movement.position.y,2))
+        var timeSinceBeginning = (Date.now()-this.data.movement.start)/1000
+        if (timeSinceBeginning>=distanceFinale*Player.rapidity){
+            this.data.position = this.data.movement.position
+            this.data.movement = undefined
+            this.save()
+            return this.data.position
+        }
+        var finalX = 0
+        var finalY = 0
+
+        var thisFinalX = this.data.movement.position.x-this.data.position.x
+        finalX = timeSinceBeginning*thisFinalX/(distanceFinale*Player.rapidity) + this.data.position.x
+        
+        var thisFinalY = this.data.movement.position.y-this.data.position.y
+        finalY = timeSinceBeginning*thisFinalY/(distanceFinale*Player.rapidity) + this.data.position.y
+        return {x:Math.round(finalX),y:Math.round(finalY)}
     }
 
     public get box(): Array<Box> {
@@ -245,7 +364,11 @@ export default class Player {
         this._box = value;
     }
     public async sendMp(message:string|MessageEmbed){
-        this._discordUser.send(message)
+        if (message instanceof MessageEmbed){
+            this._discordUser.send({embeds:[message]})
+        }else{
+            this._discordUser.send(message)
+        }
     }
 
     public get discordUser(): User {
@@ -278,31 +401,20 @@ export default class Player {
         this._inventory = value;
     }
 
-    
-
-    /**
-     * Getter $position
-     * @return {position}
-     */
-	public get position(): position {
-		return this._position;
-	}
-
-    /**
-     * Setter $position
-     * @param {position} value
-     */
-	public set position(value: position) {
-		this._position = value;
-	}
-
 
 
     
-    public get lastChannel(): TextChannel | NewsChannel | DMChannel {
+    public get lastChannel(): TextChannel|ThreadChannel{
         return this._lastChannel;
     }
-    public set lastChannel(value: TextChannel | NewsChannel | DMChannel) {
+    public set lastChannel(value: TextChannel|ThreadChannel) {
         this._lastChannel = value;
+    }
+
+    public get cooldowns(): Array<cooldown> {
+        return this._cooldowns;
+    }
+    public set cooldowns(value: Array<cooldown>) {
+        this._cooldowns = value;
     }
 }

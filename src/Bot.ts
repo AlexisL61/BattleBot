@@ -1,7 +1,7 @@
-import Discord, { MessageMentions } from "discord.js"
+import Discord, { Intents, Message, MessageMentions, TextChannel, ThreadChannel } from "discord.js"
 import Cache from "./class/cache/Cache";
 import Database from "./class/database/Database";
-import MapManager from "./class/map/MapManager";
+import Map from "./class/map/Map";
 import Player from "./class/player/Player";
 import PlayerCreator from "./class/player/PlayerCreator";
 
@@ -12,7 +12,7 @@ require("dotenv").config()
 
 var commands:Array<commandFile> = totalCommands
 
-const client = new Discord.Client()  
+const client = new Discord.Client({intents:[Intents.FLAGS.GUILD_MESSAGES,Intents.FLAGS.DIRECT_MESSAGES,Intents.FLAGS.DIRECT_MESSAGE_TYPING,Intents.FLAGS.GUILDS]})  
 const prefix = "b!"
 
 const MongoClient = require('mongodb').MongoClient;
@@ -22,30 +22,44 @@ mclient.connect(err => {
     client.login(process.env.discordtoken)
 })
 
-client.on("ready",()=>{
+client.on("ready",async ()=>{
     console.log("ready")
     var playerDatabase = mclient.db("Player").collection("Player")
     Database.playerDatabase = playerDatabase
     Database.attackDatabase = mclient.db("Player").collection("Attack")
     Database.inventoryDatabase = mclient.db("Player").collection("Inventory")
     Database.boxDatabase = mclient.db("Player").collection("Box")
+    Database.playerServerDatabase = mclient.db("Player").collection("PlayerServer")
+    Database.playerCooldownDatabase = mclient.db("Player").collection("Cooldown")
     PlayerCreator.client = client
-    MapManager.client = client
+    Map.client = client
+    await new Map()
+        .new()
+
 })
 
-client.on("message",async (message)=>{
-    
+client.on("messageCreate",async message=>{
+    console.log(message.content)
     //console.log(message.content.match(MessageMentions.USERS_PATTERN))
     if (commands.find(c=>message.content.replace(prefix,"").startsWith(c.command))){
         var commandFound:commandFile = commands.find(c=>message.content.replace(prefix,"").startsWith(c.command))
         if (commandFound.needAlive){
             var player = await Cache.playerFind(message.author.id)
-            if (player.data.dead){
-                return message.channel.send(EmbedConstructor.needRespawn())
+            if (message.channel instanceof TextChannel || message.channel instanceof ThreadChannel){
+                player.lastChannel = message.channel
             }
+            player.addServer(message.guild.id)
+            if (!player || player.data.dead || player.data.position == null){
+                message.channel.send({embeds:[EmbedConstructor.needRespawn()]})
+            }else{
+                const start = require("./commands/"+commandFound.file)
+            
+                start({"message":message})
+            }
+        }else{
+            const start = require("./commands/"+commandFound.file)
+            
+            start({"message":message})
         }
-        const start = require("./commands/"+commandFound.file)
-        
-        start({"message":message})
     }
 })

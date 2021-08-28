@@ -1,6 +1,6 @@
 type useEffect = {
     "success":boolean,
-    "data":{
+    "data"?:{
         "message":string,
         "dead"?:boolean,
         "mentionsUsed"?:number

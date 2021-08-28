@@ -1,6 +1,6 @@
 type useWeapon = {
     "success":boolean,
-    "data":{
+    "data"?:{
         "message":string
     }
 }

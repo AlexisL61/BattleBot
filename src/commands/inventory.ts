@@ -6,5 +6,5 @@ export = async function(data:commandSender){
     const userId = data.message.author.id
     var thisPlayer = await Cache.playerFind(userId)
     var embed = EmbedConstructor.playerInventory(thisPlayer)
-    data.message.channel.send(embed)
+    data.message.channel.send({embeds:[embed]})
 }

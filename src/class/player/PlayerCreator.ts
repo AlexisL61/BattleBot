@@ -9,10 +9,14 @@ export default class PlayerCreator {
     public static async fromId(id:string):Promise<Player>{
         var fetchData = await this.client.users.fetch(id)
         if (fetchData!=undefined){
-            const player = new Player(fetchData,await this.getDatabaseUserFromId(id))
-            await player.loadInventory()
-            await player.loadBoxes()
-            return player
+            var databaseData = await this.getDatabaseUserFromId(id)
+            if (databaseData!=undefined){
+                const player = new Player(fetchData,databaseData)
+                await player.loadInventory()
+                await player.loadBoxes()
+                await player.loadCooldowns()
+                return player
+            }
         }
         return undefined;
     }
