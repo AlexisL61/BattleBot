@@ -1,14 +1,18 @@
 import { MessageActionRow, MessageButton } from "discord.js";
+import Player from "../class/player/Player";
+import ShopItem from "../class/shop/ShopItem";
 
 
 export default class ComponentsConstructor{
-    public static mapComponents():Array<MessageActionRow>{
+    public static mapComponents(p:Player):Array<MessageActionRow>{
         const firstRow = new MessageActionRow()
 	
         var deplacementBtn = new MessageButton({customId:"deplacement",label:"Se déplacer",style:"PRIMARY"})
         var nearPlayersBtn = new MessageButton({customId:"nearplayers",label:"Joueur(s) près de vous",style:"PRIMARY"})
+        var dropBtn = new MessageButton({customId:"drop",label:"Ouvrir des drops",style:"SUCCESS",disabled:p.visibleDrop(p.lastChannel.guild.id).filter(d=>d.timeAvailable<Date.now()).length==0})
+        var helpBtn = new MessageButton({customId:"help",label:"Aide",style:"SECONDARY"})
 
-        firstRow.addComponents(deplacementBtn,nearPlayersBtn);
+        firstRow.addComponents(deplacementBtn,nearPlayersBtn,dropBtn,helpBtn);
         return [firstRow]
     }
 
@@ -62,5 +66,22 @@ export default class ComponentsConstructor{
             new MessageButton({customId:"move",emoji:"🏃",style:"PRIMARY",disabled:false})
         )
         return [firstRow,secondRow,thirdRow,fourthRow,fifthRow]
+    }
+
+    public static tutorialComponents(page:number,max:number):Array<MessageActionRow>{
+        const firstRow = new MessageActionRow()
+	    firstRow.addComponents(
+            new MessageButton({customId:"previous",emoji:"⬅️",style:"PRIMARY",disabled:page==0}),
+            new MessageButton({customId:"next",emoji:"➡️",style:"PRIMARY",disabled:page>=max-1})
+        )
+        return [firstRow]
+    }
+
+    public static shopComponents():Array<MessageActionRow>{
+        const firstRow = new MessageActionRow()
+        for (var i in ShopItem.shop){
+            firstRow.addComponents(new MessageButton({customId:i,emoji:ShopItem.shop[i].getItem().emoji,label:"Acheter "+ShopItem.shop[i].getItem().name.fr,style:"PRIMARY"}))
+        }
+        return [firstRow]
     }
 }

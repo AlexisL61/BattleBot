@@ -1,3 +1,3 @@
 export default {
-    "common_box":[{"type":"weapon","id":"cailloux"}]
+    "common_box":[{"type":"weapon","id":"arc"}]
 }

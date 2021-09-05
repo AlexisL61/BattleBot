@@ -3,13 +3,14 @@ import Canvas, { loadImage } from "canvas"
 import path from "path"
 import position from "../../types/position"
 import Player from "../player/Player"
+import Drop from "./Drop"
 
 const montagneNames = ["Montagne", "Pic", "Mont", "Massif", "Sommet", "Crête", "Puy", "Colline"]
 const secondNames = ["Alegro", "Poiluire", "Liville", "Colossonne", "Villeurgnan", "Levarac", "Charbéliard", "Narvin", "Grebonne", "Greçon", "Frégny", "Vitroville", "Toutoise", "Morne", "Antoveil", "Bergemasse", "Saugues", "Borcourt", "Chanesse", "Narveil", "Austral", "Martives", "Colozon", "Clateaux"]
 
 export default class MapGenerator {
 
-    public static async generateMapFromCoords(xMov,yMov,zoomP,denivele,forest,montagne,options:{opponents?:Array<Player>,playerLocation:position,pointers?:Array<{icon:string,size:number,pos:position}>,showOpponentsNum?:boolean}){
+    public static async generateMapFromCoords(xMov,yMov,zoomP,denivele,forest,montagne,options:{opponents?:Array<Player>,playerLocation:position,pointers?:Array<{icon:string,size:number,pos:position}>,showOpponentsNum?:boolean,drops?:Array<Drop>}){
         const denivelePossibility = ["51","52","53","54","55","56","57","58","59","5A","5B","5C","5D","5E","5F","61","62","63","64","65","66","67","68","69","6A","6B","6C","6D","6E","6F","71","72","73","74","75","76","77","78","79","7A","7B","7C","7D","7E","7F","81","82","83","84","85","86","87","88","89","8A","8B","8C","8D","8E","8F","91","92","93","94","95","96","97","98","99","9A","9B","9C","9D","9E","9F","A1","A2","A3","A4","A5","A6","A7","A8","A9","AA","AB","AC","AD","AE","AF"]
         const montagnePossibility = ["51","52","53","54","55","56","57","58","59","5A","5B","5C","5D","5E","5F","61","62","63","64","65","66","67","68","69","6A","6B","6C","6D","6E","6F","71","72","73","74","75","76","77","78","79","7A","7B","7C","7D","7E","7F","81","82","83","84","85","86","87","88","89","8A","8B","8C","8D","8E"]
         
@@ -21,8 +22,8 @@ export default class MapGenerator {
         var alreadyOccupied = []
         var ccc = 6
         //console.log(175/zoomP)
-        var startX = 45+xMov/10+100-100/zoomP;
-        var startY = 500+yMov/10+100-100/zoomP;
+        var startX = 45+xMov/10+175-100/zoomP;
+        var startY = 500+yMov/10+175-100/zoomP;
         var zoom = 510
         var mapSeed = 7349
         noise.seed(mapSeed)
@@ -136,7 +137,7 @@ export default class MapGenerator {
                         //console.log((x)-startX,(y*divider)-startY)
                         ctx.stroke();
                         //console.log(options.playerLocation.x,options.playerLocation.y,x,y)
-                        if (Math.sqrt(Math.pow(x-45-(options.playerLocation.x+1000)/10,2)+Math.pow(y-500-(options.playerLocation.y+1000)/10,2))<=Player.visibilityRadius/10){
+                        if (Math.sqrt(Math.pow(x-45-(options.playerLocation.x+1750)/10,2)+Math.pow(y-500-(options.playerLocation.y+1750)/10,2))<=Player.visibilityRadius/10){
                             //console.log(true)
                             ctx.beginPath();
                             ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
@@ -147,11 +148,30 @@ export default class MapGenerator {
                     }
                 }
             }
+            if (options && options.drops){
+                var startXLocal = startX - 45
+                var startYLocal = startY-500
+                var finalX = xSize/divider+startX-45
+                var finalY =  ySize/divider+startY-500
+                for (var d in options.drops){
+                    var dropLocalX = (options.drops[d].position.x+1750) /10
+                    var dropLocalY = (options.drops[d].position.y+1750) /10
+                    if (dropLocalX>startXLocal && dropLocalX<finalX && dropLocalY>startYLocal && dropLocalY<finalY){
+                        if (options.drops[d].timeAvailable<Date.now()){
+                                var imageLoaded = await loadImage("./static/images/map/dropBox.png")
+                                ctx.drawImage(imageLoaded,(dropLocalX-startXLocal)*xSize/(finalX-startXLocal)-10,(dropLocalY-startYLocal)*ySize/(finalY-startYLocal)-10,20,20)
+                        }else{
+                            var imageLoaded = await loadImage("./static/images/map/drop.png")
+                                ctx.drawImage(imageLoaded,(dropLocalX-startXLocal)*xSize/(finalX-startXLocal)-10,(dropLocalY-startYLocal)*ySize/(finalY-startYLocal)-10,20,20)
+                        }
+                    }
+                }
+            }
             if (options && options.playerLocation){
                 var startXLocal = startX - 45
                 var startYLocal = startY-500
-                var playerLocalX = (options.playerLocation.x+1000) /10
-                var playerLocalY = (options.playerLocation.y+1000) /10
+                var playerLocalX = (options.playerLocation.x+1750) /10
+                var playerLocalY = (options.playerLocation.y+1750) /10
                 var finalX = xSize/divider+startX-45
                 var finalY =  ySize/divider+startY-500
                 if (playerLocalX>startXLocal && playerLocalX<finalX && playerLocalY>startYLocal && playerLocalY<finalY){
@@ -168,8 +188,8 @@ export default class MapGenerator {
                 var finalX = xSize/divider+startX-45
                 var finalY =  ySize/divider+startY-500
                 for (var o in options.opponents){
-                    var playerLocalX = (options.opponents[o].getRealPosition().x+1000) /10
-                    var playerLocalY = (options.opponents[o].getRealPosition().y+1000) /10
+                    var playerLocalX = (options.opponents[o].getRealPosition().x+1750) /10
+                    var playerLocalY = (options.opponents[o].getRealPosition().y+1750) /10
                     if (Math.sqrt(Math.pow(options.opponents[o].getRealPosition().x-options.playerLocation.x,2)+Math.pow(options.opponents[o].getRealPosition().y-options.playerLocation.y,2))<=Player.visibilityRadius && playerLocalX>startXLocal && playerLocalX<finalX && playerLocalY>startYLocal && playerLocalY<finalY){
                         console.log(playerLocalX-startXLocal,playerLocalY-startYLocal)
                         ctx.beginPath();
@@ -195,8 +215,8 @@ export default class MapGenerator {
                 var finalX = xSize/divider+startX-45
                 var finalY =  ySize/divider+startY-500
                 for (var p in options.pointers){
-                    var playerLocalX = (options.pointers[p].pos.x+1000) /10
-                    var playerLocalY = (options.pointers[p].pos.y+1000) /10
+                    var playerLocalX = (options.pointers[p].pos.x+1750) /10
+                    var playerLocalY = (options.pointers[p].pos.y+1750) /10
                     if (playerLocalX>startXLocal && playerLocalX<finalX && playerLocalY>startYLocal && playerLocalY<finalY){
                         var imageLoaded = await loadImage("./static/images/map/pointer.png")
                         ctx.drawImage(imageLoaded,(playerLocalX-startXLocal)*xSize/(finalX-startXLocal)-options.pointers[p].size/2,(playerLocalY-startYLocal)*ySize/(finalY-startYLocal)-options.pointers[p].size,options.pointers[p].size,options.pointers[p].size)
@@ -211,7 +231,7 @@ export default class MapGenerator {
         return canvas.toBuffer()
     }
 
-    public static async generateMap():Promise<{canvas:Canvas.Canvas,deniveleSeed:number,forestSeed:number,montagneSeed:number}>{
+    public static async generateMap():Promise<{canvas:Canvas.Canvas,deniveleSeed:number,forestSeed:number,montagneSeed:number,pixels:Array<{pixels:Array<any>,name:string}>}>{
         var allPoints = {}
         const denivelePossibility = ["51","52","53","54","55","56","57","58","59","5A","5B","5C","5D","5E","5F","61","62","63","64","65","66","67","68","69","6A","6B","6C","6D","6E","6F","71","72","73","74","75","76","77","78","79","7A","7B","7C","7D","7E","7F","81","82","83","84","85","86","87","88","89","8A","8B","8C","8D","8E","8F","91","92","93","94","95","96","97","98","99","9A","9B","9C","9D","9E","9F","A1","A2","A3","A4","A5","A6","A7","A8","A9","AA","AB","AC","AD","AE","AF"]
         const montagnePossibility = ["51","52","53","54","55","56","57","58","59","5A","5B","5C","5D","5E","5F","61","62","63","64","65","66","67","68","69","6A","6B","6C","6D","6E","6F","71","72","73","74","75","76","77","78","79","7A","7B","7C","7D","7E","7F","81","82","83","84","85","86","87","88","89","8A","8B","8C","8D","8E"]
@@ -405,8 +425,8 @@ export default class MapGenerator {
         }
     }
     var alreadyInList = {}
-    var currentTime = Date.now()
     console.log(total)
+    var totalPixels = []
     for (var i in total){
         if (total[i].type!="plaine"){
             var currentTable = []
@@ -417,12 +437,13 @@ export default class MapGenerator {
                     if (allPoints[x+" "+y]){
                         
                         if (!alreadyInList[x+" "+y] && found[allPoints[x+" "+y].id] == i ){
-                            currentTable.push({"x":x,y:y})
+                            currentTable.push({"x":(x-45)*10-1750,y:(y-500)*10-1750})
                             alreadyInList[x+" "+y] = true
                         }
                     }
                 }
             }
+            console.log(currentTable)
             if (currentTable.length>200){
                 currentTable.sort(function(a,b){
                     return (b.x+b.y)-(a.x+a.y)
@@ -434,26 +455,26 @@ export default class MapGenerator {
                 var secondNameChoosen = ""
                 secondNameChoosen = secondNames[Math.floor(Math.random()*secondNames.length)]
                 var choosen = currentTable[Math.floor(currentTable.length/2)]
-                console.log(choosen.x-startX,choosen.y-startY)
                 ctx.font = "11px Roboto";
                 ctx.textAlign = "center";
                 ctx.fillStyle = "black";
-                ctx.fillText(firstNameChoosen, choosen.x-startX, choosen.y-startY);
+                ctx.fillText(firstNameChoosen, ((choosen.x+1750)/10+45)-startX, ((choosen.y+1750)/10+500)-startY);
                 ctx.font = "11px Roboto";
                 ctx.fillStyle = "white";
                 ctx.textAlign = "center";
-                ctx.fillText(firstNameChoosen, choosen.x-startX+2, choosen.y-startY-2);
+                ctx.fillText(firstNameChoosen,((choosen.x+1750)/10+45)-startX+1, ((choosen.y+1750)/10+500)-startY-1);
                 ctx.font = "11px Roboto";
                 ctx.textAlign = "center";
                 ctx.fillStyle = "black";
-                ctx.fillText(secondNameChoosen, choosen.x-startX, choosen.y-startY+13);
+                ctx.fillText(secondNameChoosen, ((choosen.x+1750)/10+45)-startX, ((choosen.y+1750)/10+500)-startY+13);
                 ctx.font = "11px Roboto";
                 ctx.fillStyle = "white";
                 ctx.textAlign = "center";
-                ctx.fillText(secondNameChoosen, choosen.x-startX+2, choosen.y-startY-2+13);
+                ctx.fillText(secondNameChoosen, ((choosen.x+1750)/10+45)-startX+1, ((choosen.y+1750)/10+500)-startY-1+13);
             }
+            totalPixels.push({"name":firstNameChoosen+" "+secondNameChoosen,pixels:currentTable})
         }
     }
-    return {canvas:canvas,forestSeed:forestSeed,deniveleSeed:deniveleSeed,montagneSeed:montagneSeed}
+    return {canvas:canvas,forestSeed:forestSeed,deniveleSeed:deniveleSeed,montagneSeed:montagneSeed,pixels:totalPixels}
     }
 }

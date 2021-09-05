@@ -43,11 +43,22 @@ export default class Weapon {
         var effectResult = await this.effect.applyEffect(player,player,messageMentions)
         var finalMessage = ""
         if (effectResult.success==false){
-            return {"success":true,"data":{"message":"Utilisation d'arme annulée"}}
+            if (effectResult.data && effectResult.data.message) finalMessage=effectResult.data.message
+            return {"success":false,"data":{"message":finalMessage+"\n\nUtilisation d'arme annulée"}}
         }else{
+            var alreadyCheckedTarget:Array<string> = []
             finalMessage += effectResult.data.message+"\n"
-            if (effectResult.data.dead){
-                finalMessage+="\n☠ "+player.discordUser.tag+" est mort\nVos récompenses se trouvent en mp!"
+            if (effectResult.data.playersTargeted){
+                for (var i in effectResult.data.playersTargeted){
+                    if (!alreadyCheckedTarget.find(t=>t==effectResult.data.playersTargeted[i].player.id)){
+                        if (effectResult.data.playersTargeted[i].player.checkIfDead(player)){
+                            finalMessage+="\n☠ "+player.discordUser.tag+" est mort\nVos récompenses se trouvent en mp!"
+                        }
+                        effectResult.data.playersTargeted[i].player.sendMp(player.discordUser.tag+" a utilisé un objet contre vous dans le salon <#"+message.channel.id+"> <t:"+Math.round(Date.now()/1000)+":R>")
+                    }
+                    alreadyCheckedTarget.push(effectResult.data.playersTargeted[i].player.id)
+                }
+                
             }
             return {"success":true,"data":{"message":finalMessage}}
         }

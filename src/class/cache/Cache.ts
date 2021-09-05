@@ -1,5 +1,8 @@
 import { Client, Collection } from "discord.js";
+import drop from "../../types/database/drop";
 import position from "../../types/position";
+import Database from "../database/Database";
+import Drop from "../map/Drop";
 import Player from "../player/Player";
 import PlayerCreator from "../player/PlayerCreator";
 
@@ -7,6 +10,7 @@ export default class Cache {
     static client:Client;
     static players: Collection<string, Player> = new Collection();
     static mapCards:Collection<string,string> = new Collection();
+    static drops:Collection<string,Drop> = new Collection();
 
     /**
      * Récupère le joueur dans le cache, créé un nouveau joueur sinon
@@ -47,5 +51,27 @@ export default class Cache {
 
     static mapAdd(p:Player,pos:position,z:number,s:string){
         this.mapCards.set(p.id+"-"+pos.x+"-"+pos.y+"-"+z,s)
+    }
+
+    static async dropFind(id:string):Promise<Drop>{
+        if (!this.drops.has(id)){
+            var thisDrop = await Drop.getDatabaseDrop(id)
+            if (!thisDrop) return undefined
+            this.drops.set(id,thisDrop)
+        }
+        return this.drops.get(id)
+    }
+
+    static async removeDrop(id:string){
+        this.drops.delete(id)
+    }
+
+    static async init(){
+        var foundDrops:Array<drop> = await Database.dropDatabase.find().toArray()
+        for (var i in foundDrops){
+            var thisDrop = new Drop({timeAvailable:foundDrops[i].timeAvailable,position:foundDrops[i].position,content:foundDrops[i].content,server:foundDrops[i].server,owner:foundDrops[i].owner})
+            thisDrop.database_id = foundDrops[i].id
+            this.drops.set(foundDrops[i].id,thisDrop)
+        }
     }
 }

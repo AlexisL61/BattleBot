@@ -2,7 +2,6 @@
 import { MessageButton, Client, Message, MessageActionRow } from "discord.js"
 import Cache from "../class/cache/Cache"
 import commandSender from "../types/commandSender"
-import DiscordButtonManager from "../utility/DiscordButtonManager"
 import EmbedConstructor from "../utility/EmbedConstructor"
 
 export = async function(data:commandSender){

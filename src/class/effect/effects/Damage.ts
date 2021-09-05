@@ -33,17 +33,17 @@ export default class Damage extends Effect{
         await target.addShield(this.damage*60)
         if (randomNumber<this.missPercent){
             status = "miss"
-            return {"success":true,"data":{"message":"💥 *0 dégâts effectués* sur "+target.discordUser.tag+" (attaque ratée)","dead":false}}
+            return {"success":true,"data":{"message":"💥 *0 dégâts effectués* sur "+target.discordUser.tag+" (attaque ratée)","playersTargeted":[{player:player}]}}
         }
         if (randomNumber>100-this.criticalPercent){
             status="critical"
             target.infligeDegats(Math.round(this.damage*this.criticalRatio))
             await player.addAttackDone(target.id,Math.round(this.damage*this.criticalRatio))
-            return {"success":true,"data":{"message":"💥 **"+Math.round(this.damage*this.criticalRatio)+" dégâts effectués** sur "+target.discordUser.tag+" (coup critique!)","dead":target.checkIfDead(player)}}
+            return {"success":true,"data":{"message":"💥 **"+Math.round(this.damage*this.criticalRatio)+" dégâts effectués** sur "+target.discordUser.tag+" (coup critique!)","playersTargeted":[{player:player}]}}
         }
         target.infligeDegats(this.damage)
         await player.addAttackDone(target.id,Math.round(this.damage))
-        return {"success":true,"data":{"message":"💥 "+Math.round(this.damage)+" dégâts effectués sur "+target.discordUser.tag,"dead":target.checkIfDead(player)}}
+        return {"success":true,"data":{"message":"💥 "+Math.round(this.damage)+" dégâts effectués sur "+target.discordUser.tag,"playersTargeted":[{player:player}]}}
     }
     
 }

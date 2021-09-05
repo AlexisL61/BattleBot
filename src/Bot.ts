@@ -31,6 +31,8 @@ client.on("ready",async ()=>{
     Database.boxDatabase = mclient.db("Player").collection("Box")
     Database.playerServerDatabase = mclient.db("Player").collection("PlayerServer")
     Database.playerCooldownDatabase = mclient.db("Player").collection("Cooldown")
+    Database.dropDatabase = mclient.db("Player").collection("Drop")
+    await Cache.init()
     PlayerCreator.client = client
     Map.client = client
     await new Map()

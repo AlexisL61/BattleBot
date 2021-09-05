@@ -2,6 +2,7 @@ import { Client, MessageAttachment, TextChannel } from "discord.js";
 import position from "../../types/position";
 import Cache from "../cache/Cache";
 import Player from "../player/Player";
+import Drop from "./Drop";
 import MapGenerator from "./MapGenerator";
 
 export default class Map {
@@ -38,6 +39,7 @@ export default class Map {
     public set mapBuffer(value: Buffer) {
         this._mapBuffer = value;
     }
+    private mapPixels:Array<{name:string,pixels:Array<any>}> = []
 
     constructor(){
     }
@@ -49,6 +51,7 @@ export default class Map {
         this.montagneNoise = result.montagneSeed
         this.forestNoise = result.forestSeed
         this.deniveleNoise = result.deniveleSeed
+        this.mapPixels = result.pixels
         console.log(result)
         var thisChannel = Map.client.channels.cache.get("854016650750459915")
         if (thisChannel instanceof TextChannel){
@@ -57,7 +60,17 @@ export default class Map {
         }
     }
 
-    async createFromCoords(pos:position,zoom,options?:{playerLocation:position,opponents?:Array<Player>,pointers?:Array<{icon:string,size:number,pos:position}>,showOpponentsNum?:boolean}){
+    public getLocationFromCoords(pos:position):string{
+        var thisPos = {x:Math.round(pos.x/10)*10,y:Math.round(pos.y/10)*10}
+        var findResult = this.mapPixels.find(p=>p.pixels.find(pi=>pi.x==thisPos.x && pi.y==thisPos.y))
+        if (findResult){
+            return findResult.name
+        }else{
+            return undefined
+        }
+    }
+
+    async createFromCoords(pos:position,zoom,options?:{playerLocation:position,opponents?:Array<Player>,pointers?:Array<{icon:string,size:number,pos:position}>,drops?:Array<Drop>,showOpponentsNum?:boolean}){
         return await MapGenerator.generateMapFromCoords(pos.x,pos.y,zoom,this.deniveleNoise,this.forestNoise,this.montagneNoise,options)
     }
 

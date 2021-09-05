@@ -34,11 +34,14 @@ export default class Mention extends Effect{
         }
             var target = await Cache.playerFind(mentions[0]);
             mentions.splice(0,1)
-            if (player.isAttackable().result==false) return {"success":false,data:{"message":"Ce joueur a un bouclier, il n'est pas attaquable"}}
+            if (!target) return {"success":false,data:{"message":"Cette personne ne s'est pas inscrite sur le bot (b!register)"}}
+            if (target.data.dead) return {"success":false,data:{"message":"Cette personne doit respawn (b!respawn) avant de pouvoir de nouveau se faire attaquer"}}
+            if (target.id == player.id) return {"success":false,data:{"message":"Vous ne pouvez pas vous attaquer vous-même"}}
+            if (target.isAttackable().result==false) return {"success":false,data:{"message":"Ce joueur a un bouclier, il n'est pas attaquable"}}
             if (player.getDistance(target.getRealPosition())>Player.visibilityRadius) return {"success":false}
             var result = await this.child.applyEffect(player,target,mentions)
             if (result.success){
-                return {"success":true,data:{"message":result.data.message,"dead":result.data.dead,"mentionsUsed":1}}
+                return {"success":true,data:{"message":result.data.message,"playersTargeted":result.data.playersTargeted}}
             }
     }
     

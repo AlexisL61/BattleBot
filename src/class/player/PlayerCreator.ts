@@ -23,12 +23,6 @@ export default class PlayerCreator {
 
     private static async getDatabaseUserFromId(id:string):Promise<databasePlayer>{
         var result = await Database.playerDatabase.findOne({"id":id})
-        if (result!=undefined){
-            return result
-        }else{
-            const returnData = _playerDefault
-            returnData.id = id
-            return returnData
-        }
+        return result
     }
 }

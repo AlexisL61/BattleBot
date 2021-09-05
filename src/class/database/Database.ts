@@ -5,4 +5,5 @@ export default class Database {
     public static boxDatabase;
     public static playerServerDatabase;
     public static playerCooldownDatabase;
+    public static dropDatabase;
 }

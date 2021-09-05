@@ -2,6 +2,7 @@ import { Guild, MessageEmbed } from "discord.js";
 import Box from "../class/box/Box";
 import Map from "../class/map/Map";
 import Player from "../class/player/Player";
+import ShopItem from "../class/shop/ShopItem";
 import Weapon from "../class/weapon/Weapon";
 import box from "../commands/box";
 import { rarities } from "../static/rarityList";
@@ -111,17 +112,9 @@ export default class EmbedConstructor{
     }
 
     public static async waitMention(toMention:string,p:Player,server:Guild):Promise<MessageEmbed>{
-        var embed = new MessageEmbed()
+        var embed = await EmbedConstructor.mapNearEnnemy(p,server)
         embed.setTitle("Cible requise")
-        var opponents = await p.getAttackablePlayers(server)
-        var opponentsList = ""
-        for (var i in opponents){
-            opponentsList+=((parseInt(i)+1)+" : "+opponents[i].discordUser.tag+"\n")
-        }
-        embed.setDescription("**Choisissez : "+toMention+"**\n\n"+opponentsList)
-        var imageBuffer = await Map.currentMap.createFromCoords(p.getRealPosition(),5,{playerLocation:p.getRealPosition(),opponents:opponents,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined,showOpponentsNum:true})
-        var imageURL = await Map.hostBuffer(imageBuffer)
-        embed.setImage(imageURL)
+        embed.setDescription("**Choisissez : "+toMention+"**\n\n"+embed.description)
         return embed
     }
 
@@ -131,7 +124,7 @@ export default class EmbedConstructor{
         var opponents = await p.getAttackablePlayers(server)
         var opponentsList = ""
         for (var i in opponents){
-            opponentsList+=((parseInt(i)+1)+" : "+opponents[i].discordUser.tag+"\n")
+            opponentsList+=((parseInt(i)+1)+" : "+opponents[i].discordUser.tag+" "+(!opponents[i].isAttackable?"🛡️":"")+"\n")
         }
         embed.setDescription(opponentsList)
         var imageBuffer = await Map.currentMap.createFromCoords(p.getRealPosition(),2.5,{playerLocation:p.getRealPosition(),opponents:opponents,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined,showOpponentsNum:true})
@@ -210,10 +203,17 @@ export default class EmbedConstructor{
         }else{
             embed.setDescription("Votre position: "+p.getRealPosition().x+" ; "+p.getRealPosition().y)
         }
+        var time = Date.now()
+        var mapLocation = Map.currentMap.getLocationFromCoords(p.data.movement?p.data.movement.position:p.getRealPosition())
+        console.log("AAAAA " +(Date.now()-time))
+        console.log(mapLocation)
+        if (mapLocation){
+            embed.setDescription(embed.description+"\nActuellement dans "+mapLocation)
+        }
         if (Map.searchExistentMap(p.getRealPosition(),2.5,p) && attackablePlayers == undefined){
             embed.setImage(Map.searchExistentMap(p.getRealPosition(),2.5,p))
         }else{
-            var imageBuffer = await Map.currentMap.createFromCoords(p.getRealPosition(),2.5,{playerLocation:p.getRealPosition(),opponents:attackablePlayers,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined})
+            var imageBuffer = await Map.currentMap.createFromCoords(p.getRealPosition(),2.5,{playerLocation:p.getRealPosition(),opponents:attackablePlayers,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position,}]:undefined,drops:p.visibleDrop(p.lastChannel.guild.id)})
             var imageURL = await Map.hostBuffer(imageBuffer,{player:p,pos:p.getRealPosition(),z:2.5})
             embed.setImage(imageURL)
         }
@@ -227,10 +227,31 @@ export default class EmbedConstructor{
         if (Map.searchExistentMap(pos,zoom,p) && opponents==undefined){
             embed.setImage(Map.searchExistentMap(pos,zoom,p))
         }else{
-            var imageBuffer = await Map.currentMap.createFromCoords(pos,zoom,{playerLocation:p.getRealPosition(),opponents:opponents,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined})
+            console.log(p.visibleDrop(p.lastChannel.guild.id))
+            var imageBuffer = await Map.currentMap.createFromCoords(pos,zoom,{playerLocation:p.getRealPosition(),opponents:opponents,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined,drops:p.visibleDrop(p.lastChannel.guild.id)})
             var imageURL = await Map.hostBuffer(imageBuffer,{player:p,pos:pos,z:zoom})
             embed.setImage(imageURL)
         }
+        return embed
+    }
+
+    public static shopEmbed():MessageEmbed{
+        var embed = new MessageEmbed()
+        embed.setTitle("Boutique")
+        var embedDesc = "**__Gavin__**:\n\"Bienvenue dans mon shop\nVendre des boxs, c'est ma spécialité. Nous faisons même la livraison sur l'île.\"\n\n"
+        for (var i in ShopItem.shop){
+            embedDesc+=ShopItem.shop[i].getItemString()+" : "+ShopItem.shop[i].price+" 💸\n"
+        }
+        embed.setDescription(embedDesc)
+        return embed
+    }
+
+
+    public static tutorialEmbed(data:{"title":string,"content":string,"image"?:string}){
+        var embed = new MessageEmbed()
+        embed.setTitle(data.title)
+        embed.setDescription(data.content+"\n\n- Lixo")
+        embed.setImage(data.image)
         return embed
     }
 }

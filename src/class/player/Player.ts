@@ -8,6 +8,7 @@ import EmbedConstructor from "../../utility/EmbedConstructor";
 import Box from "../box/Box";
 import Cache from "../cache/Cache";
 import Database from "../database/Database";
+import Drop from "../map/Drop";
 import Weapon from "../weapon/Weapon";
 
 
@@ -116,6 +117,9 @@ export default class Player {
         await Database.boxDatabase.insertOne({"id":newBox.databaseId,"owner":this.id,"box_id":box})
     }
 
+    public visibleDrop(id:string){
+        return Drop.getServerDrops(id).filter(d=>d.timeAvailable>Date.now() || this.getDistance(d.position)<Player.visibilityRadius)
+    }
     //--------------------------//
     //---------Attaques---------//
     //--------------------------//
