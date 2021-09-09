@@ -9,10 +9,10 @@ type drop = {
         player?:string
     }
     id:string,
-    content:{
-        type:"box",
-        id:string
-    }
+    content:Array<{
+        type: "box"
+        id: string
+    }>
 }
 
 export default drop

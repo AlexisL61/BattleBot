@@ -1,4 +1,4 @@
-import { MessageActionRow, MessageButton } from "discord.js";
+import { MessageActionRow, MessageButton, MessageSelectMenu, MessageSelectMenuOptions, MessageSelectOption, MessageSelectOptionData, SelectMenuInteraction } from "discord.js";
 import Player from "../class/player/Player";
 import ShopItem from "../class/shop/ShopItem";
 
@@ -82,6 +82,23 @@ export default class ComponentsConstructor{
         for (var i in ShopItem.shop){
             firstRow.addComponents(new MessageButton({customId:i,emoji:ShopItem.shop[i].getItem().emoji,label:"Acheter "+ShopItem.shop[i].getItem().name.fr,style:"PRIMARY"}))
         }
+        return [firstRow]
+    }
+
+    public static buyItemComponents(item:ShopItem):Array<MessageActionRow>{
+        const firstRow = new MessageActionRow()
+        var options:Array<MessageSelectOptionData> = []
+        for (var i = 1;i<26;i++){
+            options.push({"label":i.toString()+" ("+item.price*i+"💸)","description":"En acheter "+i.toString(),"value":i.toString(),"default":false,emoji:undefined})
+        }
+        firstRow.addComponents(new MessageSelectMenu({options:options,"placeholder":"Acheter "+item.getItem().name.fr,customId:"numberToBuy"}))
+        return [firstRow]
+    }
+
+    public static validatePurchaseComponent():Array<MessageActionRow>{
+        const firstRow = new MessageActionRow()
+        firstRow.addComponents(new MessageButton({customId:"validate",label:"Valider",style:"SUCCESS"}))
+        firstRow.addComponents(new MessageButton({customId:"cancel",label:"Annuler",style:"DANGER"}))
         return [firstRow]
     }
 }

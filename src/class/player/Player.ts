@@ -315,6 +315,13 @@ export default class Player {
         this.save()
     }
 
+    public getRandomPositionAround(){
+        var x = Math.floor(Math.random()*Player.visibilityRadius*1.5)-(Math.floor(Player.visibilityRadius*0.75))
+        var y = Math.floor(Math.random()*Player.visibilityRadius*1.5)-(Math.floor(Player.visibilityRadius*0.75))
+        var pos = {x:this.getRealPosition().x+x,y:this.getRealPosition().y+y}
+        return pos
+    }
+
     public async addServer(id:string){
         if (await Database.playerServerDatabase.findOne({"server":id,"player":this.id})){
         }else{

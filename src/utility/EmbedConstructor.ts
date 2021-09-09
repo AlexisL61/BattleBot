@@ -238,10 +238,18 @@ export default class EmbedConstructor{
     public static shopEmbed():MessageEmbed{
         var embed = new MessageEmbed()
         embed.setTitle("Boutique")
-        var embedDesc = "**__Gavin__**:\n\"Bienvenue dans mon shop\nVendre des boxs, c'est ma spécialité. Nous faisons même la livraison sur l'île.\"\n\n"
+        var embedDesc = "\"Bienvenue dans mon shop\nVendre des boxs, c'est ma spécialité. Nous faisons même la livraison sur l'île.\"\n- Gavin\n\n"
         for (var i in ShopItem.shop){
             embedDesc+=ShopItem.shop[i].getItemString()+" : "+ShopItem.shop[i].price+" 💸\n"
         }
+        embed.setDescription(embedDesc)
+        return embed
+    }
+
+    public static shopItem(item:ShopItem):MessageEmbed{
+        var embed = new MessageEmbed()
+        embed.setTitle("Boutique")
+        var embedDesc = "Item choisi : "+item.getItemString()+"\nTemps de drop : "+item.dropTime+" secondes\nPrix : "+item.price+"\n\nChoisissez le nombre de box que vous voulez acheter"
         embed.setDescription(embedDesc)
         return embed
     }
@@ -252,6 +260,34 @@ export default class EmbedConstructor{
         embed.setTitle(data.title)
         embed.setDescription(data.content+"\n\n- Lixo")
         embed.setImage(data.image)
+        return embed
+    }
+
+    public static validationShopPurchase(item:ShopItem,number:number){
+        var embed = new MessageEmbed()
+        embed.setTitle("Confirmation d'achat")
+        embed.setDescription("Êtes-vous sûr de vouloir acheter : x"+number+" "+item.getItemString()+"\nPour un total de : "+item.price*number+" 💸 ?\nCe drop arrivera <t:"+(Math.floor(Date.now()/1000)+item.dropTime*number)+":R>")
+        return embed
+    }
+
+    public static purchaseSuccess(time){
+        var embed = new MessageEmbed()
+        embed.setTitle("Achat effectué avec succès")
+        embed.setDescription("On vient d'accepter ton achat. Ton matos est dans un <:drop:882339154510352445> drop qui arrivera <t:"+(Math.floor(Date.now()/1000)+time)+":R> sur l'île")
+        return embed
+    }
+
+    public static cancelledPurchase(item:ShopItem,number:number){
+        var embed = new MessageEmbed()
+        embed.setTitle("Achat annulé")
+        embed.setDescription("Votre achat a bien été annulé")
+        return embed
+    }
+
+    public static notEnoughCoinsShop(item:ShopItem,number:number){
+        var embed = new MessageEmbed()
+        embed.setTitle("Achat annulé")
+        embed.setDescription("Vous n'avez pas assez d'argent pour acheter : x"+number+" "+item.getItemString()+"\n\n")
         return embed
     }
 }

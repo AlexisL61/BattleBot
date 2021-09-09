@@ -37,6 +37,7 @@ client.on("ready",async ()=>{
     Map.client = client
     await new Map()
         .new()
+    console.log("done")
 
 })
 

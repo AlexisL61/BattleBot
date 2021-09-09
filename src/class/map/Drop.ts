@@ -43,20 +43,20 @@ export default class Drop {
     }) {
         this._owner = value
     }
-    private _content: {
+    private _content: Array<{
         type: "box"
         id: string
-    }
-    public get content(): {
+    }>
+    public get content(): Array<{
         type: "box"
         id: string
-    } {
+    }> {
         return this._content
     }
-    public set content(value: {
+    public set content(value: Array<{
         type: "box"
         id: string
-    }) {
+    }>) {
         this._content = value
     }
     private _database_id: string
@@ -67,7 +67,7 @@ export default class Drop {
         this._database_id = value
     }
 
-    constructor(data:{timeAvailable:number,position:position,server:string,content:{type:"box",id:string},owner:{type:"PLAYER"|"SERVER",player?:string}}){
+    constructor(data:{timeAvailable:number,position:position,server:string,content:Array<{type: "box",id: string}>,owner:{type:"PLAYER"|"SERVER",player?:string}}){
         this.timeAvailable = data.timeAvailable
         this.position = data.position
         this.server = data.server
@@ -87,24 +87,30 @@ export default class Drop {
 
     public async open(p:Player){
         if (this.timeAvailable<Date.now()){
-            if (this.content.type=="box"){
-                Cache.removeDrop(this._database_id)
-                await Database.dropDatabase.deleteOne({id:this.database_id})
-                await p.addInBox(this.content.id)
+            Cache.removeDrop(this._database_id)
+            await Database.dropDatabase.deleteOne({id:this.database_id})
+            for (var i in this.content){
+                if (this.content[i].type=="box"){
+                    await p.addInBox(this.content[i].id)
+                }
             }
         }
     }
 
     public async addInDatabase(){
         var id = Date.now().toString()
+        this._database_id = id
         Cache.drops.set(id,this)
         await Database.dropDatabase.insertOne({"id":id,timeAvailable:this.timeAvailable,position:this.position,server:this.server,owner:this.owner,content:this.content})
     }
 
     public getContentString():string{
-        if (this.content.type=="box"){
-            var thisBox = boxes.find(b=>b.id==this.content.id)
-            return thisBox.emoji+" "+thisBox.name.fr
+        for (var i in this.content){
+            if (this.content[i].type=="box"){
+                console.log(this.content[i])
+                var thisBox = boxes.find(b=>b.id==this.content[i].id)
+                return thisBox.emoji+" "+thisBox.name.fr
+            }
         }
     }
 

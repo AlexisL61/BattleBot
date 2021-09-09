@@ -8,8 +8,8 @@ import TutorialManager from "../utility/TutorialManager"
 const idToPos = {"bigdown":{"x":0,"y":100},"smalldown":{"x":0,"y":20},"smallup":{"x":0,"y":-20},"bigup":{"x":0,"y":-100},
                  "bigleft":{"x":-100,"y":-0},"smallleft":{"x":-20,"y":0},"smallright":{"x":20,"y":0},"bigright":{"x":100,"y":0}}
 
-async function mainType(message:Message,thisPlayer:Player){
-    var attackablePlayers = await thisPlayer.getAttackablePlayers(message.guild)
+async function mainType(message:Message,thisPlayer:Player,alreadyAttackablePlayers?:any){
+    var attackablePlayers = alreadyAttackablePlayers?alreadyAttackablePlayers:await thisPlayer.getAttackablePlayers(message.guild)
     const messageSent = await message.edit({embeds:[await EmbedConstructor.mapEmbed(thisPlayer,attackablePlayers)],components:ComponentsConstructor.mapComponents(thisPlayer)})
     const componentCollector = messageSent.createMessageComponentCollector()
     componentCollector.on("collect",async (interaction)=>{
@@ -31,12 +31,14 @@ async function mainType(message:Message,thisPlayer:Player){
         if (interaction.customId=="drop"){
             interaction.deferUpdate()
             var drops = thisPlayer.visibleDrop(thisPlayer.lastChannel.guild.id).filter(d=>d.timeAvailable<Date.now())
-            var message = "Vous avez ouvert "+drops.length+" drop(s) et récupéré : \n\n"
+            var m = "Vous avez ouvert "+drops.length+" drop(s) et récupérez : \n\n"
             for (var i in drops){
                 drops[i].open(thisPlayer)
-                message+=drops[i].getContentString()+"\n"
+                m+=drops[i].getContentString()+"\n"
             }
+            message.channel.send(m)
             componentCollector.stop()
+            mainType(message,thisPlayer,attackablePlayers)
         }
     })
 }
