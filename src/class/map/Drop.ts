@@ -105,13 +105,15 @@ export default class Drop {
     }
 
     public getContentString():string{
+        var contentString = ""
         for (var i in this.content){
             if (this.content[i].type=="box"){
                 console.log(this.content[i])
                 var thisBox = boxes.find(b=>b.id==this.content[i].id)
-                return thisBox.emoji+" "+thisBox.name.fr
+                contentString+= thisBox.emoji+" "+thisBox.name.fr+"\n"
             }
         }
+        return contentString
     }
 
     public static getServerDrops(id:string):Array<Drop>{

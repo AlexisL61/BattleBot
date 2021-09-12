@@ -27,7 +27,7 @@ export = async function(data:commandSender){
             var choiceSelected = await messageSent.awaitMessageComponent({filter:(c)=>c.member.user.id == thisPlayer.id})
             choiceSelected.deferUpdate()
             if ( choiceSelected.customId == "validate"){
-                await messageSent.edit({"embeds":[EmbedConstructor.purchaseSuccess(itemChoosen.dropTime*numSelected)],components:ComponentsConstructor.validatePurchaseComponent()})
+                await messageSent.edit({"embeds":[EmbedConstructor.purchaseSuccess(itemChoosen.dropTime*numSelected)]})
                 var finalBoxArray = []
                 for (var j=0;j<numSelected;j++){
                     finalBoxArray.push({type:"box",id:itemChoosen.getItem().id})
