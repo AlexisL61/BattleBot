@@ -1,4 +1,4 @@
-import { Client, MessageAttachment, TextChannel } from "discord.js";
+import { Client, Collection, MessageAttachment, TextChannel } from "discord.js";
 import position from "../../types/position";
 import Cache from "../cache/Cache";
 import Player from "../player/Player";
@@ -10,6 +10,15 @@ export default class Map {
     static client:Client;
     static currentMap:Map
     static currentMapUrl:string;
+
+
+    private _cache: Collection<string, {value:number,color:string}>;
+    public get cache(): Collection<string, {value:number,color:string}> {
+        return this._cache;
+    }
+    public set cache(value: Collection<string, {value:number,color:string}>) {
+        this._cache = value;
+    }
 
     private _montagneNoise: number;
     public get montagneNoise(): number {
@@ -52,6 +61,7 @@ export default class Map {
         this.forestNoise = result.forestSeed
         this.deniveleNoise = result.deniveleSeed
         this.mapPixels = result.pixels
+        this.cache = new Collection<string,{value:number,color:string}>()
         console.log(result)
         var thisChannel = Map.client.channels.cache.get("854016650750459915")
         if (thisChannel instanceof TextChannel){

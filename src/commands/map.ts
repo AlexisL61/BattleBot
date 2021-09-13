@@ -91,8 +91,11 @@ async function deplacementType(message:Message,p:Player,opponents:Array<Player>)
             p.save()
         }
         interaction.deferUpdate()
-        message.edit({embeds:[await EmbedConstructor.mapMoveEmbed(p,pos,zoom,opponents)],components:ComponentsConstructor.mapMoveComponents(zoom,p.data.movement!=undefined)})
-        
+        var time = Date.now()
+        var mapEmbed = await EmbedConstructor.mapMoveEmbed(p,pos,zoom,opponents)
+        console.log(Date.now()-time)
+        await message.edit({embeds:[mapEmbed],components:ComponentsConstructor.mapMoveComponents(zoom,p.data.movement!=undefined)})
+        console.log(Date.now()-time)
     })
 }
 

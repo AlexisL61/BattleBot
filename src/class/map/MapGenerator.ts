@@ -4,6 +4,7 @@ import path from "path"
 import position from "../../types/position"
 import Player from "../player/Player"
 import Drop from "./Drop"
+import Map from "./Map"
 
 const montagneNames = ["Montagne", "Pic", "Mont", "Massif", "Sommet", "Crête", "Puy", "Colline"]
 const secondNames = ["Alegro", "Poiluire", "Liville", "Colossonne", "Villeurgnan", "Levarac", "Charbéliard", "Narvin", "Grebonne", "Greçon", "Frégny", "Vitroville", "Toutoise", "Morne", "Antoveil", "Bergemasse", "Saugues", "Borcourt", "Chanesse", "Narveil", "Austral", "Martives", "Colozon", "Clateaux"]
@@ -57,7 +58,12 @@ export default class MapGenerator {
                     var type = undefined
                     var paintSize = 1
                     noise.seed(mapSeed)
-                    var value = Math.abs(noise.simplex3(x / zoom, y / zoom,count/400));
+                    var value
+                    if (Map.currentMap.cache.has(x+";"+y)){
+                        value = Map.currentMap.cache.get(x+";"+y).value
+                        color = Map.currentMap.cache.get(x+";"+y).color
+                    }else{
+                    value = Math.abs(noise.simplex3(x / zoom, y / zoom,count/400));
 
                     // Valeur: eau
                     if (value<0.2){
@@ -118,6 +124,7 @@ export default class MapGenerator {
                                     for (var i = 0;i<paintSize/divider;i=i+1/divider){
                                         for (var j = 0;j<paintSize/divider;j=j+1/divider){
                                             if (i!=0 && j!=0){
+                                                Map.currentMap.cache.set((x+i)+";"+(y+j),{color:"#013d03",value:value})
                                                 alreadyOccupied.push({x:x+i,y:y+j})
                                             }
                                         }
@@ -129,8 +136,13 @@ export default class MapGenerator {
                             }
                         }
                     }
+                    //console.log(x+";"+y)
+                }
                     if (!alreadyOccupied.find(a=>a.x==x && a.y==y)){
                         //console.log((x-xMov-startX)*divider)
+                        if (!Map.currentMap.cache.has(x+";"+y)){
+                            Map.currentMap.cache.set(x+";"+y,{color:color,value:value})
+                        }
                         ctx.beginPath();
                         ctx.fillStyle = color;
                         ctx.fillRect(((x-startX)*divider),((y-startY)*divider), paintSize, paintSize);
