@@ -11,6 +11,7 @@ import { rarities } from "../../static/rarityList";
 import rarityType from "../../types/rarityType";
 import databaseWeapon from "../../types/database/weapon";
 import Database from "../database/Database";
+import commandSender from "../../types/commandSender";
 
 export default class Weapon {
     private _id: string;
@@ -35,8 +36,8 @@ export default class Weapon {
         }
     }
 
-    public async use(player:Player,message:Message):Promise<useWeapon>{
-        var messageMentions = message.content.match(MessageMentions.USERS_PATTERN) || [];
+    public async use(player:Player,data:commandSender):Promise<useWeapon>{
+        var messageMentions =data.type=="MESSAGE"? data.message.content.match(MessageMentions.USERS_PATTERN):[];
         for (var i in messageMentions){
             messageMentions[i] = messageMentions[i].replace("<@","").replace("!","").replace(">","")
         }
@@ -54,7 +55,7 @@ export default class Weapon {
                         if (effectResult.data.playersTargeted[i].player.checkIfDead(player)){
                             finalMessage+="\n☠ "+player.discordUser.tag+" est mort\nVos récompenses se trouvent en mp!"
                         }
-                        effectResult.data.playersTargeted[i].player.sendMp(player.discordUser.tag+" a utilisé un objet contre vous dans le salon <#"+message.channel.id+"> <t:"+Math.round(Date.now()/1000)+":R>")
+                        effectResult.data.playersTargeted[i].player.sendMp(player.discordUser.tag+" a utilisé un objet contre vous dans le salon <#"+data.channelSent.id+"> <t:"+Math.round(Date.now()/1000)+":R>")
                     }
                     alreadyCheckedTarget.push(effectResult.data.playersTargeted[i].player.id)
                 }

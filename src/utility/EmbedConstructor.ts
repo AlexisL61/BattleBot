@@ -10,9 +10,13 @@ import position from "../types/position";
 import weaponType from "../types/weaponType";
 
 export default class EmbedConstructor{
-    /**
-     * playerProfil
-     */
+    
+    public static notRegisterEmbed(type:"ME"|"OTHER"){
+        var embed = new MessageEmbed()
+        embed.setTitle("Non rengistré")
+        embed.setDescription(type=="ME"?"Vous devez tout d'abord être enregistré sur le bot avec b!register.":"Cette personne doit être enregistrée sur le bot avec b!register")
+        return embed
+    }
     public static playerProfil(player:Player):MessageEmbed {
         var embed = new MessageEmbed()
         embed.setTitle("Profil de "+player.discordUser.tag)
@@ -288,6 +292,20 @@ export default class EmbedConstructor{
         var embed = new MessageEmbed()
         embed.setTitle("Achat annulé")
         embed.setDescription("Vous n'avez pas assez d'argent pour acheter : x"+number+" "+item.getItemString()+"\n\n")
+        return embed
+    }
+
+    public static hourlyGot(number:number){
+        var embed = new MessageEmbed()
+        embed.setTitle("Hourly reçu")
+        embed.setDescription("Vous avez reçu un total de "+number+"💸")
+        return embed
+    }
+
+    public static hourlyCooldown(){
+        var embed = new MessageEmbed()
+        embed.setTitle("Hourly sous cooldown")
+        embed.setDescription("Vous êtes actuellement sous cooldown pour cette commande (/cooldown ou b!cooldown pour plus d'infos)")
         return embed
     }
 }

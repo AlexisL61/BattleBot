@@ -1,5 +1,5 @@
 type cooldown = {
     player:string
-    type:"SHIELD"|"ATTACK",
+    type:cooldownType,
     endTime:number
 }

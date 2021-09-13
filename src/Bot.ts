@@ -1,4 +1,7 @@
-import Discord, { Intents, Message, MessageMentions, TextChannel, ThreadChannel } from "discord.js"
+import Discord, { CommandInteraction, Intents, Interaction, Message, MessageMentions, TextChannel, ThreadChannel } from "discord.js"
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 import Cache from "./class/cache/Cache";
 import Database from "./class/database/Database";
 import Map from "./class/map/Map";
@@ -37,32 +40,53 @@ client.on("ready",async ()=>{
     Map.client = client
     await new Map()
         .new()
-    console.log("done")
+    console.log(process.env.discordtoken)
+    const rest = new REST({ version: '9' }).setToken(process.env.discordtoken);
+    await rest.post(
+        Routes.applicationGuildCommands("839149703132086273", "839149428962885652"),
+        { body: {
+            "name": "use",
+            "description": "Utilise une arme de votre inventaire"
+          }},
+    );
 
 })
 
-client.on("messageCreate",async message=>{
-    console.log(message.content)
-    //console.log(message.content.match(MessageMentions.USERS_PATTERN))
-    if (commands.find(c=>message.content.replace(prefix,"").startsWith(c.command))){
-        var commandFound:commandFile = commands.find(c=>message.content.replace(prefix,"").startsWith(c.command))
+async function onMessageInteraction(type:"MESSAGE"|"INTERACTION",message?:Message,interaction?:CommandInteraction){
+    console.log(interaction)
+    var commandFound = type=="MESSAGE"?commands.find(c=>message.content.replace(prefix,"").startsWith(c.command)): commands.find(c=>interaction.commandName==c.command)
+    if (commandFound){
+        console.log(commandFound)
         if (commandFound.needAlive){
-            var player = await Cache.playerFind(message.author.id)
-            if (message.channel instanceof TextChannel || message.channel instanceof ThreadChannel){
-                player.lastChannel = message.channel
+            var player = await Cache.playerFind(type=="MESSAGE"?message.author.id:interaction.user.id)
+            var channelSent = type=="MESSAGE"?message.channel:interaction.channel
+            if (channelSent instanceof TextChannel || channelSent instanceof ThreadChannel){
+                player.lastChannel = channelSent
+                player.addServer(channelSent.guild.id)
             }
-            player.addServer(message.guild.id)
             if (!player || player.data.dead || player.data.position == null){
                 message.channel.send({embeds:[EmbedConstructor.needRespawn()]})
             }else{
                 const start = require("./commands/"+commandFound.file)
             
-                start({"message":message})
+                start({"type":type,"message":message,"interaction":interaction,channelSent:channelSent})
             }
         }else{
             const start = require("./commands/"+commandFound.file)
-            
-            start({"message":message})
+            var channelSent = type=="MESSAGE"?message.channel:interaction.channel
+            start({"type":type,"message":message,"interaction":interaction,channelSent:channelSent})
         }
     }
+}
+
+client.on("interactionCreate",async interaction=>{
+    if (!interaction.isCommand()) return
+    await interaction.deferReply()
+    await onMessageInteraction("INTERACTION",undefined,interaction)
+})
+
+
+
+client.on("messageCreate",async message=>{
+    onMessageInteraction("MESSAGE",message)
 })

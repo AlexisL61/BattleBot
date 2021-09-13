@@ -1,0 +1,1 @@
+type cooldownType = "SHIELD"|"ATTACK"|"HOURLY"

@@ -2,6 +2,7 @@ import { Message, MessageEmbed } from "discord.js"
 import Cache from "../class/cache/Cache"
 import Player from "../class/player/Player"
 import commandSender from "../types/commandSender"
+import CommandSenderManager from "../utility/CommandSenderManager"
 import ComponentsConstructor from "../utility/ComponentsConstructor"
 import EmbedConstructor from "../utility/EmbedConstructor"
 import TutorialManager from "../utility/TutorialManager"
@@ -96,8 +97,7 @@ async function deplacementType(message:Message,p:Player,opponents:Array<Player>)
 }
 
 export = async function(data:commandSender){
-    const userId = data.message.author.id
-    const thisPlayer = await Cache.playerFind(userId)
-    var playerCoords = thisPlayer.getRealPosition()
-    mainType(await data.message.channel.send({embeds:[new MessageEmbed().setDescription("Chargement")]}),thisPlayer)
+    const userId = data.type=="MESSAGE"? data.message.author.id:data.interaction.user.id
+    var thisPlayer = await Cache.playerFind(userId)
+    mainType(await CommandSenderManager.reply(data,{embeds:[new MessageEmbed().setDescription("Chargement")]}),thisPlayer)
 }

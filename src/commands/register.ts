@@ -2,20 +2,21 @@
 import { MessageButton, Client, Message, MessageActionRow } from "discord.js"
 import Cache from "../class/cache/Cache"
 import commandSender from "../types/commandSender"
+import CommandSenderManager from "../utility/CommandSenderManager"
 import EmbedConstructor from "../utility/EmbedConstructor"
 
 export = async function(data:commandSender){
-    const userId = data.message.author.id
+    const userId = data.type=="MESSAGE"? data.message.author.id:data.interaction.user.id
     var thisPlayer = await Cache.playerFind(userId)
     if (thisPlayer.data.position){} 
-    data.message.channel.send("👋 Bienvenue sur BattleBot ! Regardez vos messages privés")
+    CommandSenderManager.reply(data,"👋 Bienvenue sur BattleBot ! Regardez vos messages privés")
     
     const firstRow = new MessageActionRow()
 	
     var yesBtn = new MessageButton({customId:"yes",label:"Oui !",style:"PRIMARY"})
 
     firstRow.addComponents(yesBtn);
-    var messageSent = await data.message.author.send({embeds:[EmbedConstructor.registerEmbed(0)],components:[firstRow]})
+    var messageSent = await thisPlayer.discordUser.send({embeds:[EmbedConstructor.registerEmbed(0)],components:[firstRow]})
 
     var firstClicked = await messageSent.awaitMessageComponent()
     await firstClicked.deferUpdate()

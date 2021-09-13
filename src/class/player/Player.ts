@@ -140,6 +140,7 @@ export default class Player {
                 }
             }
         }
+        console.log(players)
         return players
     }
 
@@ -165,7 +166,7 @@ export default class Player {
         this.save()
     }
 
-    public async addCooldown(type:"SHIELD"|"ATTACK",seconds:number){
+    public async addCooldown(type:cooldownType,seconds:number){
         if (this._cooldowns.find(c=>c.type==type)){
             if (this._cooldowns.find(c=>c.type==type && c.endTime>Date.now())){
                 this._cooldowns.find(c=>c.type==type && c.endTime>Date.now()).endTime+=seconds*1000
@@ -199,7 +200,7 @@ export default class Player {
         }
     }
 
-    public hasCooldown(type:"SHIELD"|"ATTACK"):{ result: boolean; end: number; }{
+    public hasCooldown(type:cooldownType):{ result: boolean; end: number; }{
         if (this.cooldowns.find(c=>c.type==type && c.endTime>Date.now())){
             return {result:true,end:this.cooldowns.find(c=>c.type==type && c.endTime>Date.now()).endTime}
         }else{

@@ -27,7 +27,8 @@ export default class Mention extends Effect{
             await player.lastChannel.send({embeds:[await EmbedConstructor.waitMention(this.toMention,player,player.lastChannel.guild)]})
             var messageFound = await player.lastChannel.awaitMessages({filter:(m:Message)=>m.author.id == player.id,"max":1})
             if (parseInt(messageFound.first().content)){
-                var getAttackablePlayer = await player.getAttackablePlayers(player.lastChannel.guild)[parseInt(messageFound.first().content)-1]
+                var getAttackablePlayer = (await player.getAttackablePlayers(player.lastChannel.guild))[parseInt(messageFound.first().content)-1]
+                console.log(getAttackablePlayer)
                 if (getAttackablePlayer==undefined){
                     return {"success":false,data:{"message":"Cette personne ne fait pas partie des personnes à côté de vous"}}
                 }
