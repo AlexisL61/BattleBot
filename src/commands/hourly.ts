@@ -8,7 +8,7 @@ export = async function(data:commandSender){
     const userId = data.type=="MESSAGE"? data.message.author.id:data.interaction.user.id
     var thisPlayer = await Cache.playerFind(userId)
     if (thisPlayer.hasCooldown("HOURLY").result==false){
-        await thisPlayer.addCooldown("HOURLY",60)
+        await thisPlayer.addCooldown("HOURLY",60*60)
         var moneyGiven = Math.floor(Math.random()*1000)+500
         thisPlayer.data.coins+=moneyGiven
         await thisPlayer.save()

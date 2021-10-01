@@ -6,4 +6,5 @@ export default class Database {
     public static playerServerDatabase;
     public static playerCooldownDatabase;
     public static dropDatabase;
+    public static resourceDatabase;
 }

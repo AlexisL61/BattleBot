@@ -308,4 +308,15 @@ export default class EmbedConstructor{
         embed.setDescription("Vous êtes actuellement sous cooldown pour cette commande (/cooldown ou b!cooldown pour plus d'infos)")
         return embed
     }
+
+    public static cooldownsCoomand(p:Player){
+        var allCooldowns:Array<{title:string,type:cooldownType}> = [{"title":"Bouclier","type":"SHIELD"},{"title":"Attaque","type":"ATTACK"},{"title":"Hourly","type":"HOURLY"}]
+        var embed = new MessageEmbed()
+        embed.setTitle("Cooldowns")
+        for (var i in allCooldowns){
+            console.log(p.hasCooldown(allCooldowns[i].type))
+            embed.addField(allCooldowns[i].title,p.hasCooldown(allCooldowns[i].type).result?"<t:"+Math.floor(p.hasCooldown(allCooldowns[i].type).end/1000)+":R>":"Prêt")
+        }
+        return embed
+    }
 }
