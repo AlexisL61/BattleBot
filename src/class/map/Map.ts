@@ -48,7 +48,7 @@ export default class Map {
     public set mapBuffer(value: Buffer) {
         this._mapBuffer = value;
     }
-    private mapPixels:Array<{name:string,pixels:Array<any>}> = []
+    private mapPixels:Array<{location:{name:string, type:"forest"|"river"|"montagne"|"plaine"},pixels:Array<any>}> = []
 
     constructor(){
     }
@@ -70,11 +70,11 @@ export default class Map {
         }
     }
 
-    public getLocationFromCoords(pos:position):string{
+    public getLocationFromCoords(pos:position):{"name":string,type:"forest"|"montagne"|"plaine"|"river"}{
         var thisPos = {x:Math.round(pos.x/10)*10,y:Math.round(pos.y/10)*10}
         var findResult = this.mapPixels.find(p=>p.pixels.find(pi=>pi.x==thisPos.x && pi.y==thisPos.y))
         if (findResult){
-            return findResult.name
+            return findResult.location
         }else{
             return undefined
         }

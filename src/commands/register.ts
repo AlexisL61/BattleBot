@@ -1,14 +1,16 @@
 
 import { MessageButton, Client, Message, MessageActionRow } from "discord.js"
 import Cache from "../class/cache/Cache"
+import Player from "../class/player/Player"
 import commandSender from "../types/commandSender"
+import { _playerDefault } from "../types/database/player"
 import CommandSenderManager from "../utility/CommandSenderManager"
 import EmbedConstructor from "../utility/EmbedConstructor"
 
 export = async function(data:commandSender){
     const userId = data.type=="MESSAGE"? data.message.author.id:data.interaction.user.id
     var thisPlayer = await Cache.playerFind(userId)
-    if (thisPlayer.data.position){} 
+    if (thisPlayer) return
     CommandSenderManager.reply(data,"👋 Bienvenue sur BattleBot ! Regardez vos messages privés")
     
     const firstRow = new MessageActionRow()
@@ -16,7 +18,7 @@ export = async function(data:commandSender){
     var yesBtn = new MessageButton({customId:"yes",label:"Oui !",style:"PRIMARY"})
 
     firstRow.addComponents(yesBtn);
-    var messageSent = await thisPlayer.discordUser.send({embeds:[EmbedConstructor.registerEmbed(0)],components:[firstRow]})
+    var messageSent = await data.message.author.send({embeds:[EmbedConstructor.registerEmbed(0)],components:[firstRow]})
 
     var firstClicked = await messageSent.awaitMessageComponent()
     await firstClicked.deferUpdate()
@@ -43,6 +45,9 @@ export = async function(data:commandSender){
     var thirdClicked = await messageSent.awaitMessageComponent()
     await thirdClicked.deferUpdate()
     messageSent.channel.send({"embeds":[EmbedConstructor.registerEmbed(4,{"id":data.message.author.id})]})
+    thisPlayer = new Player(data.message.author,_playerDefault)
+    thisPlayer.data.id = data.message.author.id
+    Cache.addPlayer(thisPlayer)
     thisPlayer.setRandomPosition()
     messageSent.channel.send({"embeds":[EmbedConstructor.registerEmbed(5,{"pos":{"x":thisPlayer.data.position.x,"y":thisPlayer.data.position.y}})]})
 }

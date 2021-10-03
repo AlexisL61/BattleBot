@@ -76,7 +76,7 @@ export default class MapGenerator {
                         var deniveleValue = Math.abs(noise.simplex3((x) / deniveleZoom, (y) / deniveleZoom,count/400));
                         if (deniveleValue<0.02){
                             //valeur: rivière
-                            type= "riviere"
+                            type= "river"
                             color =  "#0000"+waterPossibility[Math.floor((deniveleValue*1.5)*waterPossibility.length)]
                         }else{
                             //valeur plaine
@@ -94,8 +94,8 @@ export default class MapGenerator {
                                 if (forestValue > 0.75) type= "forest"
                                 
                                 if (forestValue > 0.75 && Math.random()>0.75 && !alreadyOccupied.find(a=>a.x==x && a.y==y)){
-                                    //valeur foret
-                                    //Ajout point foret
+                                    //valeur forest
+                                    //Ajout point forest
                                     type = "forest"
                                     paintSize = Math.floor(Math.random()*4)+1
                                     color = "#013d03"
@@ -116,8 +116,8 @@ export default class MapGenerator {
                                 var forestValue = Math.abs(noise.simplex2((x) / forestZoom, (y) / forestZoom));
                                 if (forestValue > 0.75) type= "forest"
                                 if (forestValue > 0.75 && Math.random()>0.75 && !alreadyOccupied.find(a=>a.x==x && a.y==y)){
-                                    //valeur foret
-                                    //Ajout point foret
+                                    //valeur forest
+                                    //Ajout point forest
                                     type= "forest"
                                     paintSize = Math.floor(Math.random()*4)+1
                                     color = "#013d03"
@@ -243,7 +243,7 @@ export default class MapGenerator {
         return canvas.toBuffer()
     }
 
-    public static async generateMap():Promise<{canvas:Canvas.Canvas,deniveleSeed:number,forestSeed:number,montagneSeed:number,pixels:Array<{pixels:Array<any>,name:string}>}>{
+    public static async generateMap():Promise<{canvas:Canvas.Canvas,deniveleSeed:number,forestSeed:number,montagneSeed:number,pixels:Array<{pixels:Array<any>,location:{name:string,type:"forest"|"river"|"montagne"|"plaine"}}>}>{
         var allPoints = {}
         const denivelePossibility = ["51","52","53","54","55","56","57","58","59","5A","5B","5C","5D","5E","5F","61","62","63","64","65","66","67","68","69","6A","6B","6C","6D","6E","6F","71","72","73","74","75","76","77","78","79","7A","7B","7C","7D","7E","7F","81","82","83","84","85","86","87","88","89","8A","8B","8C","8D","8E","8F","91","92","93","94","95","96","97","98","99","9A","9B","9C","9D","9E","9F","A1","A2","A3","A4","A5","A6","A7","A8","A9","AA","AB","AC","AD","AE","AF"]
         const montagnePossibility = ["51","52","53","54","55","56","57","58","59","5A","5B","5C","5D","5E","5F","61","62","63","64","65","66","67","68","69","6A","6B","6C","6D","6E","6F","71","72","73","74","75","76","77","78","79","7A","7B","7C","7D","7E","7F","81","82","83","84","85","86","87","88","89","8A","8B","8C","8D","8E"]
@@ -303,7 +303,7 @@ export default class MapGenerator {
                         var deniveleValue = Math.abs(noise.simplex3(x / deniveleZoom, y / deniveleZoom,count/400));
                         if (deniveleValue<0.02){
                             //valeur: rivière
-                            type= "riviere"
+                            type= "river"
                             color =  "#0000"+waterPossibility[Math.floor((deniveleValue*1.5)*waterPossibility.length)]
                         }else{
                             //valeur plaine
@@ -321,8 +321,8 @@ export default class MapGenerator {
                                 if (forestValue > 0.75) type= "forest"
                                 
                                 if (forestValue > 0.75 && Math.random()>0.75 && !alreadyOccupied.find(a=>a.x==x && a.y==y)){
-                                    //valeur foret
-                                    //Ajout point foret
+                                    //valeur forest
+                                    //Ajout point forest
                                     type = "forest"
                                     paintSize = Math.floor(Math.random()*4)+1
                                     color = "#013d03"
@@ -343,8 +343,8 @@ export default class MapGenerator {
                                 var forestValue = Math.abs(noise.simplex2(x / forestZoom, y / forestZoom));
                                 if (forestValue > 0.75) type= "forest"
                                 if (forestValue > 0.75 && Math.random()>0.75 && !alreadyOccupied.find(a=>a.x==x && a.y==y)){
-                                    //valeur foret
-                                    //Ajout point foret
+                                    //valeur forest
+                                    //Ajout point forest
                                     type= "forest"
                                     paintSize = Math.floor(Math.random()*4)+1
                                     color = "#013d03"
@@ -484,7 +484,7 @@ export default class MapGenerator {
                 ctx.textAlign = "center";
                 ctx.fillText(secondNameChoosen, ((choosen.x+1750)/10+45)-startX+1, ((choosen.y+1750)/10+500)-startY-1+13);
             }
-            totalPixels.push({"name":firstNameChoosen+" "+secondNameChoosen,pixels:currentTable})
+            totalPixels.push({"location":{"name":firstNameChoosen+" "+secondNameChoosen,type:total[i].type},pixels:currentTable})
         }
     }
     return {canvas:canvas,forestSeed:forestSeed,deniveleSeed:deniveleSeed,montagneSeed:montagneSeed,pixels:totalPixels}

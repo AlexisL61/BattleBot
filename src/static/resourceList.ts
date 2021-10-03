@@ -6,7 +6,11 @@ var resources:Array<resourceType> = [
 ]
 
 var resourcesGroups:Array<resourceGroupType> = [
-    {"resource":"red_apple","capacity":{"min":1,max:3},"foundableIn":["foret","plaine","riviere","montagne"]}
+    {"resource":"red_apple","capacity":{"min":1,max:3},"foundableIn":["forest","plaine","river","montagne"]}
 ]
 
-export {resources,resourcesGroups}
+var resourcesRarityChances = {
+    "common":50
+}
+
+export {resources,resourcesGroups,resourcesRarityChances}

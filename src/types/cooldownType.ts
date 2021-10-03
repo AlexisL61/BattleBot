@@ -1,1 +1,1 @@
-type cooldownType = "SHIELD"|"ATTACK"|"HOURLY"
+type cooldownType = "SHIELD"|"ATTACK"|"HOURLY"|"SEARCH"

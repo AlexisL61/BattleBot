@@ -91,6 +91,13 @@ export default class EmbedConstructor{
         return embed
     }
 
+    public static needRegister():MessageEmbed{
+        var embed = new MessageEmbed()
+        embed.setTitle("Compte non créé")
+        embed.setDescription("Vous devez créer un compte avec la commande b!register")
+        return embed
+    }
+
     public static playerInventory(p:Player):MessageEmbed{
         var data = Weapon.sortWeaponForInventory(p)
         var embed = new MessageEmbed()
@@ -103,7 +110,7 @@ export default class EmbedConstructor{
             if (rarityText == ""){
                 rarityText = "Aucune arme"
             }
-            embed.addField(rarities[i].name.fr,rarityText)
+            embed.addField(rarities[i].emoji+" "+ rarities[i].name.fr,rarityText)
         }
         return embed
     }
@@ -202,23 +209,21 @@ export default class EmbedConstructor{
     public static async mapEmbed(p:Player,attackablePlayers?:Array<Player>){
         var embed = new MessageEmbed()
         embed.setTitle("Map")
-        if (p.data.movement){
-            embed.setDescription("Votre position: "+p.getRealPosition().x+" ; "+p.getRealPosition().y+".\nVous vous déplacez actuellement vers : "+p.data.movement.position.x+" ; "+p.data.movement.position.y+". Vous y arriverez "+p.getTimeLeft())
+        var realPos = p.getRealPosition()
+        if (p.data.movement!=undefined){
+            embed.setDescription("Votre position: "+realPos.x+" ; "+realPos.y+".\nVous vous déplacez actuellement vers : "+p.data.movement.position.x+" ; "+p.data.movement.position.y+". Vous y arriverez "+p.getTimeLeft())
         }else{
-            embed.setDescription("Votre position: "+p.getRealPosition().x+" ; "+p.getRealPosition().y)
+            embed.setDescription("Votre position: "+realPos.x+" ; "+realPos.y)
         }
-        var time = Date.now()
-        var mapLocation = Map.currentMap.getLocationFromCoords(p.data.movement?p.data.movement.position:p.getRealPosition())
-        console.log("AAAAA " +(Date.now()-time))
-        console.log(mapLocation)
+        var mapLocation = Map.currentMap.getLocationFromCoords(realPos)
         if (mapLocation){
-            embed.setDescription(embed.description+"\nActuellement dans "+mapLocation)
+            embed.setDescription(embed.description+"\nActuellement dans "+mapLocation.name)
         }
-        if (Map.searchExistentMap(p.getRealPosition(),2.5,p) && attackablePlayers == undefined){
-            embed.setImage(Map.searchExistentMap(p.getRealPosition(),2.5,p))
+        if (Map.searchExistentMap(realPos,2.5,p) && attackablePlayers == undefined){
+            embed.setImage(Map.searchExistentMap(realPos,2.5,p))
         }else{
-            var imageBuffer = await Map.currentMap.createFromCoords(p.getRealPosition(),2.5,{playerLocation:p.getRealPosition(),opponents:attackablePlayers,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position,}]:undefined,drops:p.visibleDrop(p.lastChannel.guild.id)})
-            var imageURL = await Map.hostBuffer(imageBuffer,{player:p,pos:p.getRealPosition(),z:2.5})
+            var imageBuffer = await Map.currentMap.createFromCoords(realPos,2.5,{playerLocation:realPos,opponents:attackablePlayers,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position,}]:undefined,drops:p.visibleDrop(p.lastChannel.guild.id)})
+            var imageURL = await Map.hostBuffer(imageBuffer,{player:p,pos:realPos,z:2.5})
             embed.setImage(imageURL)
         }
         return embed

@@ -26,6 +26,7 @@ mclient.connect(err => {
 })
 
 client.on("ready",async ()=>{
+    client.user.setActivity("engager des combats dans "+client.guilds.cache.size+" serveurs")
     console.log("ready")
     var playerDatabase = mclient.db("Player").collection("Player")
     Database.playerDatabase = playerDatabase
@@ -59,17 +60,21 @@ async function onMessageInteraction(type:"MESSAGE"|"INTERACTION",message?:Messag
         console.log(commandFound)
         if (commandFound.needAlive){
             var player = await Cache.playerFind(type=="MESSAGE"?message.author.id:interaction.user.id)
-            var channelSent = type=="MESSAGE"?message.channel:interaction.channel
-            if (channelSent instanceof TextChannel || channelSent instanceof ThreadChannel){
-                player.lastChannel = channelSent
-                player.addServer(channelSent.guild.id)
-            }
-            if (!player || player.data.dead || player.data.position == null){
-                message.channel.send({embeds:[EmbedConstructor.needRespawn()]})
+            if (!player){
+                message.channel.send({embeds:[EmbedConstructor.needRegister()]})
             }else{
-                const start = require("./commands/"+commandFound.file)
-            
-                start({"type":type,"message":message,"interaction":interaction,channelSent:channelSent})
+                if (player.data.dead || player.data.position == null){
+                    message.channel.send({embeds:[EmbedConstructor.needRespawn()]})
+                }else{
+                    var channelSent = type=="MESSAGE"?message.channel:interaction.channel
+                    if (channelSent instanceof TextChannel || channelSent instanceof ThreadChannel){
+                        player.lastChannel = channelSent
+                        player.addServer(channelSent.guild.id)
+                    }
+                    const start = require("./commands/"+commandFound.file)
+                
+                    start({"type":type,"message":message,"interaction":interaction,channelSent:channelSent})
+                }
             }
         }else{
             const start = require("./commands/"+commandFound.file)

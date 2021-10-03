@@ -23,6 +23,7 @@ export default class Mention extends Effect{
     }
 
     public async applyEffect(player: Player, target:Player,mentions:Array<string>): Promise<useEffect> {
+        if (!mentions) mentions = []
         if (mentions.length==0){
             await player.lastChannel.send({embeds:[await EmbedConstructor.waitMention(this.toMention,player,player.lastChannel.guild)]})
             var messageFound = await player.lastChannel.awaitMessages({filter:(m:Message)=>m.author.id == player.id,"max":1})

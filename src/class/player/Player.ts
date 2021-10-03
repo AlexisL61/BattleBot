@@ -9,6 +9,7 @@ import Box from "../box/Box";
 import Cache from "../cache/Cache";
 import Database from "../database/Database";
 import Drop from "../map/Drop";
+import Resource from "../resource/Resource";
 import Weapon from "../weapon/Weapon";
 
 
@@ -20,6 +21,7 @@ export default class Player {
     private _discordUser: User;
     private _data: databasePlayer;
     private _inventory: Array<Weapon> = [new Weapon("cailloux"),new Weapon("cailloux"),new Weapon("cailloux"), new Weapon("bandage")];
+    private _resources: Array<Resource> = [];
     private _servers:Array<string> = []
     private _cooldowns: Array<cooldown> = [];
     private _lastChannel: TextChannel|ThreadChannel;
@@ -62,9 +64,9 @@ export default class Player {
                 this.inventory.push(w)
             }
         }
-        if (foundArray.length == 0){
+        /*if (foundArray.length == 0){
             this.addInInventory("cailloux")
-        }
+        }*/
     }
 
     public async removeInInventory(index:number){
@@ -166,6 +168,44 @@ export default class Player {
         this.save()
     }
 
+    //--------------------------//
+    //---------Ressources-------//
+    //--------------------------//
+
+    public async loadResources(){
+        this.inventory = []
+        var foundArray:Array<databaseResource> =await Database.resourceDatabase.find({"owner":this.id}).toArray()
+        for (var i in foundArray){
+            var found = foundArray[i]
+            if (found){
+                var r = new Resource(found.resource_id)
+                r.owner = found.owner
+                r.databaseId = found.id
+                this.resources.push(r)
+            }
+        }
+        /*if (foundArray.length == 0){
+            this.addInInventory("cailloux")
+        }*/
+    }
+    public async removeInResources(index:number){
+        var resourceRemove = this.resources.splice(index,1)
+        await Database.inventoryDatabase.deleteOne({"id":resourceRemove[0].databaseId})
+    }
+
+    public async addInResources(resource:string):Promise<Resource>{
+        var id = Date.now().toString();
+        var newResource = new Resource(resource)
+        newResource.owner = this.id
+        newResource.databaseId = id
+        this.resources.push(newResource)
+        await Database.inventoryDatabase.insertOne({"id":newResource.databaseId,"owner":this.id,"weapon_id":resource})
+        return newResource
+    }
+
+    //--------------------------//
+    //---------Cooldown---------//
+    //--------------------------//
     public async addCooldown(type:cooldownType,seconds:number){
         if (this._cooldowns.find(c=>c.type==type)){
             if (this._cooldowns.find(c=>c.type==type && c.endTime>Date.now())){
@@ -216,6 +256,10 @@ export default class Player {
         }
     }
 
+    //--------------------------//
+    //--------Mort joueur-------//
+    //--------------------------//
+
     public checkIfDead(killer:Player):boolean{
         if (this.data.lifeStats.health <= 0 && !this.data.dead){
             this.data.dead = true
@@ -263,6 +307,10 @@ export default class Player {
          return
     }
 
+    //--------------------------//
+    //---------Sauvegardes------//
+    //--------------------------//
+
     public async save():Promise<void>{
         if (await Database.playerDatabase.findOne({"id":this.id})){
             await Database.playerDatabase.updateOne({"id":this.id},{"$set":this._data})
@@ -271,6 +319,9 @@ export default class Player {
         }
     }
 
+    //--------------------------//
+    //-----------Divers---------//
+    //--------------------------//
     public getLifeBarre():{"health":string,"shield":string}{
         var finalHealth = ""
         if (this.data.lifeStats.health>0){
@@ -428,5 +479,13 @@ export default class Player {
     }
     public set cooldowns(value: Array<cooldown>) {
         this._cooldowns = value;
+    }
+
+    
+    public get resources(): Array<Resource> {
+        return this._resources;
+    }
+    public set resources(value: Array<Resource>) {
+        this._resources = value;
     }
 }
