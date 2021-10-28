@@ -9,6 +9,7 @@ import Box from "../box/Box";
 import Cache from "../cache/Cache";
 import Database from "../database/Database";
 import Drop from "../map/Drop";
+import CookedFood from "../resource/CookedFood";
 import Resource from "../resource/Resource";
 import Weapon from "../weapon/Weapon";
 
@@ -20,12 +21,13 @@ export default class Player {
     private _id: string;
     private _discordUser: User;
     private _data: databasePlayer;
-    private _inventory: Array<Weapon> = [new Weapon("cailloux"),new Weapon("cailloux"),new Weapon("cailloux"), new Weapon("bandage")];
+    private _inventory: Array<Weapon> = [];
     private _resources: Array<Resource> = [];
     private _servers:Array<string> = []
     private _cooldowns: Array<cooldown> = [];
     private _lastChannel: TextChannel|ThreadChannel;
     private _box: Array<Box>;
+    private _cookedFoods: Array<CookedFood> = [];
     
 
     /**
@@ -55,6 +57,7 @@ export default class Player {
     public async loadInventory(){
         this.inventory = []
         var foundArray:Array<databaseWeapon> =await Database.inventoryDatabase.find({"owner":this.id}).toArray()
+        console.log(foundArray)
         for (var i in foundArray){
             var found = foundArray[i]
             if (found){
@@ -173,8 +176,9 @@ export default class Player {
     //--------------------------//
 
     public async loadResources(){
-        this.inventory = []
+        this.resources = []
         var foundArray:Array<databaseResource> =await Database.resourceDatabase.find({"owner":this.id}).toArray()
+        console.log(foundArray)
         for (var i in foundArray){
             var found = foundArray[i]
             if (found){
@@ -199,10 +203,27 @@ export default class Player {
         newResource.owner = this.id
         newResource.databaseId = id
         this.resources.push(newResource)
-        await Database.inventoryDatabase.insertOne({"id":newResource.databaseId,"owner":this.id,"weapon_id":resource})
+        await Database.resourceDatabase.insertOne({"id":newResource.databaseId,"owner":this.id,"resource_id":resource})
         return newResource
     }
 
+    public async loadCookedFood(){
+        this.cookedFoods = []
+        var foundArray:Array<databaseCookedFood> =await Database.cookedFoodDatabase.find({"owner":this.id}).toArray()
+        console.log(foundArray)
+        for (var i in foundArray){
+            var found = foundArray[i]
+            if (found){
+                var r = new CookedFood(found.cookedfood_id)
+                r.owner = found.owner
+                r.databaseId = found.id
+                this.cookedFoods.push(r)
+            }
+        }
+        /*if (foundArray.length == 0){
+            this.addInInventory("cailloux")
+        }*/
+    }
     //--------------------------//
     //---------Cooldown---------//
     //--------------------------//
@@ -221,6 +242,7 @@ export default class Player {
         }else{
             await Database.playerCooldownDatabase.insertOne({"type":type,"endTime":Date.now()+seconds*1000,player:this.id})
         }
+        return
     }
 
     public async addShield(seconds:number){
@@ -487,5 +509,11 @@ export default class Player {
     }
     public set resources(value: Array<Resource>) {
         this._resources = value;
+    }
+    public get cookedFoods(): Array<CookedFood> {
+        return this._cookedFoods;
+    }
+    public set cookedFoods(value: Array<CookedFood>) {
+        this._cookedFoods = value;
     }
 }

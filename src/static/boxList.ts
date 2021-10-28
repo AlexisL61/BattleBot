@@ -7,8 +7,7 @@ import boxType from "../types/boxType";
 
 var boxes:Array<boxType> = 
 [
-    {"id":"common_box","name":{"fr":"Box commune","en":"Common box"},"image":"","emoji":"🎁"},
-    {"id":"bandage","name":{"fr":"bandage","en":"bandage"},"image":"","emoji":":heart:"}
+    {"id":"common_box","name":{"fr":"Box commune","en":"Common box"},"image":"","emoji":"<:CommonBox:894325899409911848>","rarityChance":{"common":10,"uncommon":1}}
 ]
 
 export {boxes}

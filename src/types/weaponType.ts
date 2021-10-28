@@ -7,7 +7,7 @@ type weaponType = {
     image:string,
     emoji:string,
     effect:Effect,
-    rarity:"common"
+    rarity:"common"|"uncommon"
 }
 
 export default weaponType

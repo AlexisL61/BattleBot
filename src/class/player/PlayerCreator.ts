@@ -15,6 +15,8 @@ export default class PlayerCreator {
                 await player.loadInventory()
                 await player.loadBoxes()
                 await player.loadCooldowns()
+                await player.loadResources()
+                await player.loadCookedFood()
                 return player
             }
         }

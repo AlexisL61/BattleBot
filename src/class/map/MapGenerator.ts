@@ -2,6 +2,7 @@ const noise = require("../../../static/library/noise.js")
 import Canvas, { loadImage } from "canvas"
 import path from "path"
 import position from "../../types/position"
+import Cache from "../cache/Cache"
 import Player from "../player/Player"
 import Drop from "./Drop"
 import Map from "./Map"
@@ -52,6 +53,8 @@ export default class MapGenerator {
         async function aaa(count){
             var last
             var color:string
+            console.log("BBBBBBB "+Map.searchExistentMap({"x":xMov,"y":yMov},zoomP))
+            if (!Map.searchExistentMap({"x":xMov,"y":yMov},zoomP)){
             for (var x = 0+startX; x < xSize/divider+startX; x=x+(1/divider)) {
                 //console.log(x,1/divider)
                 for (var y = 0+startY; y < ySize/divider+startY; y=y+(1/divider)) {
@@ -160,6 +163,15 @@ export default class MapGenerator {
                     }
                 }
             }
+            //console.log(canvas.toBuffer())
+            Cache.mapAdd({"x":xMov,"y":yMov},zoomP,canvas.toBuffer())
+        }else{
+            /*console.log("AAAAAAA "+Map.searchExistentMap({"x":xMov,"y":yMov},zoomP))
+            var ancientImage = new Canvas.Image()
+            ancientImage.src =  Map.searchExistentMap({"x":xMov,"y":yMov},zoomP)*/
+            var img = await loadImage(__dirname+"/../../static/map_images/"+Map.searchExistentMap({"x":xMov,"y":yMov},zoomP))
+            ctx.drawImage(img,0,0,200,200)
+        }
             if (options && options.drops){
                 var startXLocal = startX - 45
                 var startYLocal = startY-500

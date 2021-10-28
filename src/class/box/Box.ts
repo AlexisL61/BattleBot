@@ -15,6 +15,7 @@ export default class Box {
     private _image: string;
     private _databaseId: string;
     private _owner: string;
+    private _rarityChance: { common: number; uncommon: number; };
 
     constructor(id:string){
         var found = Box.getBoxData(id)
@@ -24,14 +25,15 @@ export default class Box {
             this.name = b.name
             this.emoji = b.emoji
             this.image = b.image
+            this.rarityChance = b.rarityChance
         }
     }
 
     public async open():Promise<Weapon>{
-        var boxInside:Array<{type:string,id:string,multiplicity?:number}> = boxContent[this.id]
+        var boxInside:Array<{type:string,id:string}> = boxContent[this.id]
         var items:Array<{type:string,id:string}> = []
         for (var item of boxInside){
-            var multiplicity = item.multiplicity|1
+            var multiplicity = this.rarityChance[Weapon.getWeaponData(item.id).rarity]
             for (var i = 0;i<multiplicity;i++){
                 items.push({"type":item.type,"id":item.id})
             }
@@ -97,5 +99,12 @@ export default class Box {
     }
     public set owner(value: string) {
         this._owner = value;
+    }
+    
+    public get rarityChance(): { common: number; uncommon: number; } {
+        return this._rarityChance;
+    }
+    public set rarityChance(value: { common: number; uncommon: number; }) {
+        this._rarityChance = value;
     }
 }

@@ -17,6 +17,8 @@ totalCommands.push({"file":"map","command":"map","needAlive":true})
 totalCommands.push({"file":"shop","command":"shop","needAlive":true})
 totalCommands.push({"file":"hourly","command":"hourly","needAlive":true})
 totalCommands.push({"file":"cooldown","command":"cooldown","needAlive":true})
+totalCommands.push({"file":"search","command":"search","needAlive":true})
+totalCommands.push({"file":"food","command":"food","needAlive":true})
 
 export {totalCommands};
 export default commandFile;

@@ -21,7 +21,7 @@ export default class ShopItem {
         this._dropTime = value
     }
 
-    public static shop = [new ShopItem({type:"box",id:"common_box"},100,10)]
+    public static shop = [new ShopItem({type:"box",id:"common_box"},250,10)]
 
     constructor(item:{type:"box",id:string},price:number,dropTime:number){
         this.item = item

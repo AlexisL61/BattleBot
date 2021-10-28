@@ -2,6 +2,7 @@ import { Guild, MessageEmbed } from "discord.js";
 import Box from "../class/box/Box";
 import Map from "../class/map/Map";
 import Player from "../class/player/Player";
+import Resource from "../class/resource/Resource";
 import ShopItem from "../class/shop/ShopItem";
 import Weapon from "../class/weapon/Weapon";
 import box from "../commands/box";
@@ -104,7 +105,7 @@ export default class EmbedConstructor{
         embed.setTitle("Inventaire")
         for (var i in rarities){
             var rarityText = ""
-            for (var w of data[i]){
+            for (var w of data[i].filter(weap=>weap.weapon.rarity.id==rarities[i].id)){
                 rarityText += w.weapon.emoji+" "+w.weapon.name.fr+" x"+w.number+"\n"
             }
             if (rarityText == ""){
@@ -167,7 +168,7 @@ export default class EmbedConstructor{
         var embed = new MessageEmbed()
         embed.setTitle("Box ouverte")
         var finalDescription = "Vous avez ouvert la box: **"+b.emoji+" "+b.name.fr+"** et avez obtenu:\n\n"
-        finalDescription+=w.emoji+" "+w.name.fr
+        finalDescription+=w.emoji+" "+w.name.fr+" de qualité "+w.rarity.emoji+" "+w.rarity.name.fr
         embed.setDescription(finalDescription)
         return embed
     }
@@ -219,13 +220,9 @@ export default class EmbedConstructor{
         if (mapLocation){
             embed.setDescription(embed.description+"\nActuellement dans "+mapLocation.name)
         }
-        if (Map.searchExistentMap(realPos,2.5,p) && attackablePlayers == undefined){
-            embed.setImage(Map.searchExistentMap(realPos,2.5,p))
-        }else{
             var imageBuffer = await Map.currentMap.createFromCoords(realPos,2.5,{playerLocation:realPos,opponents:attackablePlayers,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position,}]:undefined,drops:p.visibleDrop(p.lastChannel.guild.id)})
-            var imageURL = await Map.hostBuffer(imageBuffer,{player:p,pos:realPos,z:2.5})
+            var imageURL = await Map.hostBuffer(imageBuffer)
             embed.setImage(imageURL)
-        }
         return embed
     }
 
@@ -233,14 +230,11 @@ export default class EmbedConstructor{
         var embed = new MessageEmbed()
         embed.setTitle("Map - Déplacement")
         embed.setDescription("Votre position: "+p.getRealPosition().x+" ; "+p.getRealPosition().y+"\nPosition de la caméra: "+pos.x+" ; "+pos.y)
-        if (Map.searchExistentMap(pos,zoom,p) && opponents==undefined){
-            embed.setImage(Map.searchExistentMap(pos,zoom,p))
-        }else{
+        
             console.log(p.visibleDrop(p.lastChannel.guild.id))
             var imageBuffer = await Map.currentMap.createFromCoords(pos,zoom,{playerLocation:p.getRealPosition(),opponents:opponents,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined,drops:p.visibleDrop(p.lastChannel.guild.id)})
-            var imageURL = await Map.hostBuffer(imageBuffer,{player:p,pos:pos,z:zoom})
+            var imageURL = await Map.hostBuffer(imageBuffer)
             embed.setImage(imageURL)
-        }
         return embed
     }
 
@@ -321,6 +315,37 @@ export default class EmbedConstructor{
         for (var i in allCooldowns){
             console.log(p.hasCooldown(allCooldowns[i].type))
             embed.addField(allCooldowns[i].title,p.hasCooldown(allCooldowns[i].type).result?"<t:"+Math.floor(p.hasCooldown(allCooldowns[i].type).end/1000)+":R>":"Prêt")
+        }
+        return embed
+    }
+
+    public static searchDone(str:string){
+        var embed = new MessageEmbed()
+        embed.setTitle("Recherche terminée")
+        embed.setDescription("Vous avez reçu :\n\n"+str)
+        return embed
+    }
+
+    public static searchOnCooldown(str:string){
+        var embed = new MessageEmbed()
+        embed.setTitle("Recherche sous cooldown")
+        embed.setDescription("Vous êtes actuellement sous cooldown pour cette commande")
+        return embed
+    }
+
+    public static playerResources(player:Player){
+        var embed = new MessageEmbed()
+        embed.setTitle("Ressources")
+        var data = Resource.sortResourceForInventory(player)
+        for (var i in rarities){
+            var rarityText = ""
+            for (var r of data[i].filter(res=>res.resource.rarity.id==rarities[i].id)){
+                rarityText += r.resource.emoji+" "+r.resource.name.fr+" x"+r.number+"\n"
+            }
+            if (rarityText == ""){
+                rarityText = "Aucune ressource"
+            }
+            embed.addField(rarities[i].emoji+" "+ rarities[i].name.fr,rarityText)
         }
         return embed
     }

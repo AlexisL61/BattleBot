@@ -6,6 +6,7 @@ import resourceGroupType from "../../types/resources/resourceGroupType";
 import resourceType from "../../types/resources/resourceType";
 import Database from "../database/Database";
 import Effect from "../effect/Effect";
+import Player from "../player/Player";
 
 
 export default class Resource {
@@ -14,20 +15,48 @@ export default class Resource {
     private _emoji: string;
     private _bonus: resourceBonus;
     private _rarity: rarityType;
+    private _types:Array<string>
     private _databaseId: string;
     private _owner: string;
 
     constructor(id:string){
         var found = Resource.getResourceData(id)
+        console.log(found)
         if (found){
             var r = found;
+            console.log("RESSOURCE")
+            console.log(r)
             this._id = r.id;
             this._name = r.name
             this._emoji = r.emoji
             this.bonus = r.bonus
+            this._types = r.types
             this.rarity = rarities.find(ra=>ra.id==r.rarity)
         }
 
+    }
+
+    public static sortResourceForInventory(p:Player){
+        var resources = p.resources
+        var embedTable:Array<Array<{"resource":Resource,"number":number}>> = []
+        for (var rarity of rarities){
+            var theseResources = resources.filter(r=>r.rarity==rarity)
+            var finalTable:Array<{"resource":Resource,"number":number}> = []
+            for (var resource of theseResources){
+                var found = finalTable.find(r=>r.resource.id==resource.id)
+                if (found){
+                    found.number++
+                }else{
+                    finalTable.push({"number":1,"resource":resource})
+                }
+            }
+            embedTable.push(finalTable)
+        }
+        return embedTable
+    }
+
+    public toString(){
+        return this.emoji+" "+this.name
     }
 
     public static async getDatabaseResource(weaponId:string):Promise<Resource>{

@@ -1,4 +1,6 @@
+import { Canvas } from "canvas";
 import { Client, Collection } from "discord.js";
+import { fstat, writeFileSync } from "fs";
 import drop from "../../types/database/drop";
 import position from "../../types/position";
 import Database from "../database/Database";
@@ -41,16 +43,18 @@ export default class Cache {
         }
     }
 
-    static mapFind(p:Player,pos:position,z:number):string{
-        if (this.mapCards.has(p.id+"-"+pos.x+"-"+pos.y+"-"+z)){
-            return this.mapCards.get(p.id+"-"+pos.x+"-"+pos.y+"-"+z)
+    static mapFind(pos:position,z:number):string{
+        if (this.mapCards.has(pos.x+"-"+pos.y+"-"+z)){
+            return this.mapCards.get(pos.x+"-"+pos.y+"-"+z)
         }else{
             return undefined
         }
     }
 
-    static mapAdd(p:Player,pos:position,z:number,s:string){
-        this.mapCards.set(p.id+"-"+pos.x+"-"+pos.y+"-"+z,s)
+    static mapAdd(pos:position,z:number,s:Buffer){
+        var date = Date.now()
+        writeFileSync(__dirname+"/../../static/map_images/"+date,s)
+        this.mapCards.set(pos.x+"-"+pos.y+"-"+z,date+"")
     }
 
     static async dropFind(id:string):Promise<Drop>{

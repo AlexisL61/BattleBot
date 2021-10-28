@@ -1,3 +1,4 @@
+import { Canvas } from "canvas";
 import { Client, Collection, MessageAttachment, TextChannel } from "discord.js";
 import position from "../../types/position";
 import Cache from "../cache/Cache";
@@ -76,7 +77,7 @@ export default class Map {
         if (findResult){
             return findResult.location
         }else{
-            return undefined
+            return {"name":"plaine",type:"plaine"}
         }
     }
 
@@ -84,18 +85,15 @@ export default class Map {
         return await MapGenerator.generateMapFromCoords(pos.x,pos.y,zoom,this.deniveleNoise,this.forestNoise,this.montagneNoise,options)
     }
 
-    static searchExistentMap(pos:position,zoom:number,player:Player):string{
-        return Cache.mapFind(player,pos,zoom)
+    static searchExistentMap(pos:position,zoom:number):String{
+        return Cache.mapFind(pos,zoom)
         
     }
 
-    static async hostBuffer(b:Buffer,o?:{player:Player,pos:position,z:number}):Promise<string>{
+    static async hostBuffer(b:Buffer):Promise<string>{
         var thisChannel = this.client.channels.cache.get("854016650750459915")
         if (thisChannel instanceof TextChannel){
             var messageSent = await thisChannel.send({files:[new MessageAttachment(b)]})
-            if (o){
-                Cache.mapAdd(o.player,o.pos,o.z,messageSent.attachments.first().url)
-            }
             return messageSent.attachments.first().url
         }else{
             return undefined

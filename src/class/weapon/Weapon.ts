@@ -19,7 +19,7 @@ export default class Weapon {
     private _emoji: string;
     private _image: string;
     private effect:Effect
-    private rarity:rarityType
+    private _rarity: rarityType;
     private _databaseId: string;
     private _owner: string;
 
@@ -134,10 +134,11 @@ export default class Weapon {
     public static sortWeaponForInventory(p:Player){
         var weapons = p.inventory
         var embedTable:Array<Array<{"weapon":Weapon,"number":number}>> = []
+        console.log(weapons)
         for (var rarity of rarities){
             var theseWeapons = weapons.filter(w=>w.rarity==rarity)
             var finalTable:Array<{"weapon":Weapon,"number":number}> = []
-            for (var weapon of weapons){
+            for (var weapon of theseWeapons){
                 var found = finalTable.find(w=>w.weapon.id==weapon.id)
                 if (found){
                     found.number++
@@ -185,5 +186,11 @@ export default class Weapon {
     }
     public set owner(value: string) {
         this._owner = value;
+    }
+    public get rarity(): rarityType {
+        return this._rarity;
+    }
+    public set rarity(value: rarityType) {
+        this._rarity = value;
     }
 }

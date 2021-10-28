@@ -6,6 +6,7 @@ type boxType = {
     name:{"fr":string,"en":string},
     image:string,
     emoji:string,
+    rarityChance:{common:number,uncommon:number}
 }
 
 export default boxType

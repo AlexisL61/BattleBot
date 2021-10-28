@@ -2,7 +2,7 @@ import resourceGroupType from "../types/resources/resourceGroupType";
 import resourceType from "../types/resources/resourceType";
 
 var resources:Array<resourceType> = [
-    {"id":"red_apple","emoji":"🍎","name":{fr:"Pomme rouge","en":" Red apple"},"type":"fruit","subtype":"apple","bonus":{health:5,shield:0,effects:[]},"rarity":"common"}
+    {"id":"red_apple","emoji":"🍎","name":{fr:"Pomme rouge","en":" Red apple"},"types":["fruit","apple"],"bonus":{health:5,shield:0,effects:[]},"rarity":"common"}
 ]
 
 var resourcesGroups:Array<resourceGroupType> = [

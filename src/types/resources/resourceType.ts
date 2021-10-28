@@ -6,8 +6,7 @@ type resourceType = {
     id:string,
     name:{"fr":string,"en":string},
     emoji:string,
-    type:string,
-    subtype:string,
+    types:Array<string>,
     bonus:resourceBonus
     rarity:string
 }
