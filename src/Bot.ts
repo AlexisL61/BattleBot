@@ -63,9 +63,11 @@ async function onMessageInteraction(type:"MESSAGE"|"INTERACTION",message?:Messag
         if (commandFound.needAlive){
             var player = await Cache.playerFind(type=="MESSAGE"?message.author.id:interaction.user.id)
             if (!player){
-                message.channel.send({embeds:[EmbedConstructor.needRegister()]})
+                message?message.channel.send({embeds:[EmbedConstructor.needRegister()]}):interaction.followUp({embeds:[EmbedConstructor.needRegister()]})
             }else{
                 if (player.data.dead || player.data.position == null){
+                    message?message.channel.send({embeds:[EmbedConstructor.needRespawn()]}):interaction.followUp({embeds:[EmbedConstructor.needRespawn()]})
+            
                     message.channel.send({embeds:[EmbedConstructor.needRespawn()]})
                 }else{
                     var channelSent = type=="MESSAGE"?message.channel:interaction.channel

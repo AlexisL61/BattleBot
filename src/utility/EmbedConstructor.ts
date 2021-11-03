@@ -2,15 +2,30 @@ import { Guild, MessageEmbed } from "discord.js";
 import Box from "../class/box/Box";
 import Map from "../class/map/Map";
 import Player from "../class/player/Player";
+import CookedFood from "../class/resource/CookedFood";
 import Resource from "../class/resource/Resource";
 import ShopItem from "../class/shop/ShopItem";
 import Weapon from "../class/weapon/Weapon";
 import box from "../commands/box";
+import cook from "../commands/cook";
 import { rarities } from "../static/rarityList";
+import { totalCommands } from "../types/commandFile";
 import position from "../types/position";
 import weaponType from "../types/weaponType";
 
 export default class EmbedConstructor{
+    
+
+    public static help(): MessageEmbed{
+        var embed = new MessageEmbed()
+        embed.setTitle("Commandes")
+        var description = "Voici la liste des commandes disponibles\n\n"
+        for(var i in totalCommands){
+            description += "**"+totalCommands[i].command+"** : "+totalCommands[i].description+"\n"
+        }
+        embed.setDescription(description)
+        return embed
+    }
     
     public static notRegisterEmbed(type:"ME"|"OTHER"){
         var embed = new MessageEmbed()
@@ -173,6 +188,17 @@ export default class EmbedConstructor{
         return embed
     }
 
+    static boxesOpened(totalWeapons: Weapon[]): MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Box ouvertes")
+        var finalDescription = "Vous avez ouvert toutes vos box et recevez:\n\n"
+        for (var w of totalWeapons) {
+            finalDescription += w.emoji + " " + w.name.fr + " de qualité " + w.rarity.emoji + " " + w.rarity.name.fr + "\n"
+        }
+        embed.setDescription(finalDescription)
+        return embed
+    }
+
     public static registerEmbed(type:number,data?:object):object{
         var embed = {}
         embed["title"] = "Inscription"
@@ -220,7 +246,7 @@ export default class EmbedConstructor{
         if (mapLocation){
             embed.setDescription(embed.description+"\nActuellement dans "+mapLocation.name)
         }
-            var imageBuffer = await Map.currentMap.createFromCoords(realPos,2.5,{playerLocation:realPos,opponents:attackablePlayers,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position,}]:undefined,drops:p.visibleDrop(p.lastChannel.guild.id)})
+            var imageBuffer = await Map.currentMap.createFromCoords(realPos,2,{playerLocation:realPos,opponents:attackablePlayers,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position,}]:undefined,drops:p.visibleDrop(p.lastChannel.guild.id)})
             var imageURL = await Map.hostBuffer(imageBuffer)
             embed.setImage(imageURL)
         return embed
@@ -309,7 +335,7 @@ export default class EmbedConstructor{
     }
 
     public static cooldownsCoomand(p:Player){
-        var allCooldowns:Array<{title:string,type:cooldownType}> = [{"title":"Bouclier","type":"SHIELD"},{"title":"Attaque","type":"ATTACK"},{"title":"Hourly","type":"HOURLY"}]
+        var allCooldowns:Array<{title:string,type:cooldownType}> = [{"title":"Bouclier","type":"SHIELD"},{"title":"Attaque","type":"ATTACK"},{"title":"Hourly","type":"HOURLY"},{"title":"Search","type":"SEARCH"}]
         var embed = new MessageEmbed()
         embed.setTitle("Cooldowns")
         for (var i in allCooldowns){
@@ -349,4 +375,116 @@ export default class EmbedConstructor{
         }
         return embed
     }
+
+    public static playerResourcesToCook(resourcesSelected:Array<Resource>,resourcesAvailable:Array<Resource>){
+        var embed = new MessageEmbed()
+        embed.setTitle("Cuisine")
+        if (resourcesSelected.length==0){
+            embed.addField("Ressources sélectionnées (0/5)","Aucune ressource sélectionnée")
+        }else{
+            var selectedData = Resource.sortResourceForCookSelection(resourcesSelected)
+            var weaponsText = ""
+            for (var r of selectedData){
+                weaponsText += r.resource.emoji+" "+r.resource.name.fr+" x"+r.number+"\n"
+            }
+            embed.addField("Ressources sélectionnées ("+resourcesSelected.length+"/5)",weaponsText)
+        }
+        if (resourcesAvailable.length==0){
+            embed.addField("Ressources disponible","Aucune ressource disponible")
+        }else{
+            var availableData = Resource.sortResourceForCookSelection(resourcesAvailable)
+            var weaponsText = ""
+            for (var r of availableData){
+                weaponsText += r.resource.emoji+" "+r.resource.name.fr+" x"+r.number+"\n"
+            }
+            embed.addField("Ressources disponible",weaponsText)
+        }
+        return embed
+    }
+
+    public static cookCancel(){
+        var embed = new MessageEmbed()
+        embed.setTitle("Cuisine")
+        embed.setDescription("Commande annulée")
+        return embed
+    }
+
+    public static currentlyCooking(){
+        var embed = new MessageEmbed()
+        embed.setTitle("Cuisine")
+        embed.setDescription("Cuisine en cours...")
+        return embed
+    }
+
+    public static cookingEnded(cookedFood:CookedFood){
+        var embed = new MessageEmbed()
+        embed.setTitle("Cuisine terminée")
+        embed.setDescription("Vous venez de cuisiner : \n\n"+cookedFood.name.fr)
+        var health = cookedFood.bonus.health
+        var shield = cookedFood.bonus.shield
+        for (var i in cookedFood.resources){
+            health+=cookedFood.resources[i].bonus.health
+            shield+=cookedFood.resources[i].bonus.shield
+        }
+        embed.addField("Soins",health+"❤️ "+shield+"🛡️")
+        return embed
+    }
+
+
+    public static playerCookedFoods(player:Player){
+        var embed = new MessageEmbed()
+        embed.setTitle("Plats cuisinés")
+        var description = ""
+        var data = player.cookedFoods
+        for (var i in data){
+            description+=data[i].name.fr+" ("+data[i].getHealingBonus()+")\n"
+        }
+        embed.setDescription(description)
+        return embed
+    }
+
+    public static selectFoodToEat(player:Player){
+        var embed = new MessageEmbed()
+        embed.setTitle("Plats cuisinés")
+        var description = "Choisissez un plat à manger\n\n"
+        var data = player.cookedFoods
+        for (var i in data){
+            description+=data[i].name.fr+" ("+data[i].getHealingBonus()+")\n"
+        }
+        embed.setDescription(description)
+        return embed
+    }
+
+    public static cookedFoodEaten(cookedFood:CookedFood){
+        var embed = new MessageEmbed()
+        embed.setTitle("Plat mangé")
+        embed.setDescription("Plat mangé avec succès !\n\nVous avez reçu "+cookedFood.getHealingBonus())
+        return embed
+    }
+
+    public static noFoodToEat(){
+        var embed = new MessageEmbed()
+        embed.setTitle("Aucun plat")
+        embed.setDescription("Vous n'avez pas de plats dans votre inventaire")
+        return embed
+    }
+
+    public static weaponInfo(weapon:weaponType){
+        var embed = new MessageEmbed()
+        embed.setTitle("Info arme")
+        embed.setDescription("Information de l'arme "+weapon.name.fr)
+        embed.addField("Rareté",rarities.find(r=>r.id==weapon.rarity).emoji+" "+rarities.find(r=>r.id==weapon.rarity).name.fr,true)
+        embed.addField("Description",weapon.info.description,true)
+        embed.addField("Utilisation",weapon.info.use,false)
+        return embed
+    }
+
+    public static weaponInfoNotFound(){
+        var embed = new MessageEmbed()
+        embed.setTitle("Arme non trouvée")
+        embed.setDescription("L'arme n'a pas été trouvée")
+        return embed
+    }
+    
+    
 }

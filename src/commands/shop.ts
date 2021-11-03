@@ -28,7 +28,8 @@ export = async function(data:commandSender){
             if ( choiceSelected.customId == "validate"){
                 thisPlayer.data.coins-=itemChoosen.price*numSelected
                 await thisPlayer.save()
-                await messageSent.edit({"embeds":[EmbedConstructor.purchaseSuccess(itemChoosen.dropTime*numSelected)],components:ComponentsConstructor.validatePurchaseComponent()})
+                messageSent.channel.send({"embeds":[EmbedConstructor.purchaseSuccess(itemChoosen.dropTime*numSelected)]})
+                await messageSent.delete()
                 var finalBoxArray = []
                 for (var j=0;j<numSelected;j++){
                     finalBoxArray.push({type:"box",id:itemChoosen.getItem().id})

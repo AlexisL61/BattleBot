@@ -11,15 +11,20 @@ export = async function(data:commandSender){
     const userId = data.type=="MESSAGE"? data.message.author.id:data.interaction.user.id
     var thisPlayer = await Cache.playerFind(userId)
     if (thisPlayer) return
+    var messageSent
+    try{
+        const firstRow = new MessageActionRow()
+        
+        var yesBtn = new MessageButton({customId:"yes",label:"Oui !",style:"PRIMARY"})
+    
+        firstRow.addComponents(yesBtn);
+        messageSent = await data.message.author.send({embeds:[EmbedConstructor.registerEmbed(0)],components:[firstRow]})
+    }catch(e){
+        return CommandSenderManager.reply(data,"Une erreur est survenue lors de l'envoi du message dans vos mp. N'oubliez pas des les ouvrir")
+    }
     CommandSenderManager.reply(data,"👋 Bienvenue sur BattleBot ! Regardez vos messages privés")
     
-    const firstRow = new MessageActionRow()
-	
-    var yesBtn = new MessageButton({customId:"yes",label:"Oui !",style:"PRIMARY"})
-
-    firstRow.addComponents(yesBtn);
-    var messageSent = await data.message.author.send({embeds:[EmbedConstructor.registerEmbed(0)],components:[firstRow]})
-
+    
     var firstClicked = await messageSent.awaitMessageComponent()
     await firstClicked.deferUpdate()
 

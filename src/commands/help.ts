@@ -6,5 +6,5 @@ import EmbedConstructor from "../utility/EmbedConstructor"
 export = async function(data:commandSender){
     const userId = data.type=="MESSAGE"? data.message.author.id:data.interaction.user.id
     var thisPlayer = await Cache.playerFind(userId)
-    CommandSenderManager.reply(data,{"embeds":[EmbedConstructor.playerCookedFoods(thisPlayer)]})
+    CommandSenderManager.reply(data,{"embeds":[EmbedConstructor.help()]})
 }

@@ -38,13 +38,14 @@ export = async function(data:commandSender){
         console.log(thisPlayer.inventory)
         if (weaponIndex!=-1){
             var weapon = thisPlayer.inventory[weaponIndex]
-            if (messageSent.channel instanceof TextChannel || messageSent.channel instanceof ThreadChannel){
-                thisPlayer.lastChannel = messageSent.channel
+            if (data.channelSent instanceof TextChannel || data.channelSent instanceof ThreadChannel){
+                thisPlayer.lastChannel = data.channelSent
             }
             var resultUse:useWeapon = await weapon.use(thisPlayer,data)
             CommandSenderManager.reply(data,{embeds:[EmbedConstructor.weaponUse(weapon,resultUse.data.message)]})
             if (resultUse.success){
                 thisPlayer.addCooldown("ATTACK",5*60)
+                thisPlayer.removeShield()
                 thisPlayer.removeInInventory(weaponIndex)
             }
         }else{

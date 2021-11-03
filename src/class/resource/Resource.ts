@@ -15,7 +15,7 @@ export default class Resource {
     private _emoji: string;
     private _bonus: resourceBonus;
     private _rarity: rarityType;
-    private _types:Array<string>
+    private _types: Array<string>;
     private _databaseId: string;
     private _owner: string;
 
@@ -27,6 +27,7 @@ export default class Resource {
             console.log("RESSOURCE")
             console.log(r)
             this._id = r.id;
+            this.types = r.types
             this._name = r.name
             this._emoji = r.emoji
             this.bonus = r.bonus
@@ -51,6 +52,23 @@ export default class Resource {
                 }
             }
             embedTable.push(finalTable)
+        }
+        return embedTable
+    }
+
+    public static sortResourceForCookSelection(r:Array<Resource>){
+        var resources = r
+        var embedTable:Array<{"resource":Resource,"number":number}> = []
+        for (var rarity of rarities){
+            var theseResources = resources.filter(r=>r.rarity==rarity)
+            for (var resource of theseResources){
+                var found = embedTable.find(r=>r.resource.id==resource.id)
+                if (found){
+                    found.number++
+                }else{
+                    embedTable.push({"number":1,"resource":resource})
+                }
+            }
         }
         return embedTable
     }
@@ -136,5 +154,11 @@ export default class Resource {
     }
     public set owner(value: string) {
         this._owner = value;
+    }
+    public get types(): Array<string> {
+        return this._types;
+    }
+    public set types(value: Array<string>) {
+        this._types = value;
     }
 }

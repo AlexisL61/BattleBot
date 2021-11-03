@@ -12,7 +12,7 @@ const idToPos = {"bigdown":{"x":0,"y":100},"smalldown":{"x":0,"y":20},"smallup":
 async function mainType(message:Message,thisPlayer:Player,alreadyAttackablePlayers?:any){
     var attackablePlayers = alreadyAttackablePlayers?alreadyAttackablePlayers:await thisPlayer.getAttackablePlayers(message.guild)
     const messageSent = await message.edit({embeds:[await EmbedConstructor.mapEmbed(thisPlayer,attackablePlayers)],components:ComponentsConstructor.mapComponents(thisPlayer)})
-    const componentCollector = messageSent.createMessageComponentCollector()
+    const componentCollector = messageSent.createMessageComponentCollector({filter:(interaction)=>interaction.user.id==thisPlayer.id})
     componentCollector.on("collect",async (interaction)=>{
         console.log(interaction.customId)
         if (interaction.customId=="help"){
@@ -46,7 +46,7 @@ async function mainType(message:Message,thisPlayer:Player,alreadyAttackablePlaye
 
 async function nearPlayersType(message:Message,p:Player){
     await message.edit({embeds:[await EmbedConstructor.mapNearEnnemy(p,p.lastChannel.guild)],components:ComponentsConstructor.mapNearEnnemy()})
-    const componentCollector = message.createMessageComponentCollector()
+    const componentCollector = message.createMessageComponentCollector({filter:(interaction)=>interaction.user.id==p.id})
     componentCollector.on("collect",(interaction)=>{
         if (interaction.customId=="cancel"){
             mainType(message,p)
@@ -58,7 +58,7 @@ async function nearPlayersType(message:Message,p:Player){
 
 async function deplacementType(message:Message,p:Player,opponents:Array<Player>){
     var pos = {x:p.getRealPosition().x,y:p.getRealPosition().y}
-    var zoom = 3
+    var zoom =2
     message.edit({embeds:[await EmbedConstructor.mapMoveEmbed(p,pos,zoom,opponents)],components:ComponentsConstructor.mapMoveComponents(zoom,p.data.movement!=undefined)})
     var messageComponentcollector = message.createMessageComponentCollector({filter:(interaction)=>interaction.user.id==p.id})
     messageComponentcollector.on("collect",async (interaction)=>{

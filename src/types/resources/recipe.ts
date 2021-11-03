@@ -1,6 +1,7 @@
 import resourceBonus from "./resourceBonus";
 
 type recipe = {
+    emoji:"",
     bonus:resourceBonus,
     need:Array<string>,
     id:string,

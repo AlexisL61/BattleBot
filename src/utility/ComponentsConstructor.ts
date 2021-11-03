@@ -1,6 +1,8 @@
 import { MessageActionRow, MessageButton, MessageSelectMenu, MessageSelectMenuOptions, MessageSelectOption, MessageSelectOptionData, SelectMenuInteraction } from "discord.js";
 import Player from "../class/player/Player";
+import Resource from "../class/resource/Resource";
 import ShopItem from "../class/shop/ShopItem";
+import EmojiHelper from "./EmojiHelper";
 
 
 export default class ComponentsConstructor{
@@ -100,5 +102,51 @@ export default class ComponentsConstructor{
         firstRow.addComponents(new MessageButton({customId:"validate",label:"Valider",style:"SUCCESS"}))
         firstRow.addComponents(new MessageButton({customId:"cancel",label:"Annuler",style:"DANGER"}))
         return [firstRow]
+    }
+
+    public static playerResourcesSelectComponent(resourcesAvailable:Array<Resource>,selectLength:number):Array<MessageActionRow>{
+        const firstRow = new MessageActionRow()
+        const options:Array<MessageSelectOptionData> = []
+        if (resourcesAvailable.length!=0 && selectLength<5){
+            var availableData = Resource.sortResourceForCookSelection(resourcesAvailable)
+            for (var i in availableData){
+                options.push({"emoji":EmojiHelper.getEmojiId(availableData[i].resource.emoji),"label":availableData[i].resource.name.fr,"value":availableData[i].resource.databaseId,"default":false,"description":""})
+            }
+            firstRow.addComponents(new MessageSelectMenu({"customId":"select","placeholder":"Sélectionnez une ressource","options":options}))
+        }
+        const secondRow = new MessageActionRow()
+        secondRow.addComponents(new MessageButton({customId:"cancel",label:"Annuler",style:"DANGER"}))
+        secondRow.addComponents(new MessageButton({customId:"cook",label:"Cuisiner",style:"SUCCESS",disabled:selectLength<3}))
+        return resourcesAvailable.length!=0 && selectLength<5?[firstRow,secondRow]:[secondRow]
+    }
+
+    public static selectFoodToEat(player:Player){
+        const firstRow = new MessageActionRow()
+        const options:Array<MessageSelectOptionData> = []
+        for (var i in player.cookedFoods){
+            options.push({"emoji":EmojiHelper.getEmojiId(player.cookedFoods[i].emoji),"label":player.cookedFoods[i].name.fr+" ("+player.cookedFoods[i].getHealingBonus()+")","value":player.cookedFoods[i].databaseId,"default":false,"description":""})
+        }
+        firstRow.addComponents(new MessageSelectMenu({"customId":"select","placeholder":"Sélectionnez une ressource","options":options}))
+        return [firstRow]
+    }
+
+    public static selectBoxToOpen(player:Player):Array<MessageActionRow>{
+        const firstRow = new MessageActionRow()
+        const secondRow = new MessageActionRow()
+        if (player.box.length>0){
+            secondRow.addComponents(new MessageButton({customId:"open",label:"Tout ouvrir",style:"SUCCESS"}))
+            
+            if (player.box.length<25){
+                const options:Array<MessageSelectOptionData> = []
+                for (var i in player.box){
+                    options.push({"emoji":EmojiHelper.getEmojiId(player.box[i].emoji),"label":player.box[i].name.fr,"value":i,"default":false,"description":""})
+                }
+                firstRow.addComponents(new MessageSelectMenu({"customId":"select","placeholder":"Sélectionnez une box","options":options}))
+                return [firstRow,secondRow]
+            }else{
+                return [secondRow]
+            }
+        }
+        return []
     }
 }

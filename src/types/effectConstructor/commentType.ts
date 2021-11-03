@@ -1,0 +1,3 @@
+type commentType = {
+    text:string
+}

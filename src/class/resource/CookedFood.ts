@@ -2,6 +2,8 @@ import recipes from "../../static/recipeList";
 import recipe from "../../types/resources/recipe";
 import resourceBonus from "../../types/resources/resourceBonus";
 import Database from "../database/Database";
+import Player from "../player/Player";
+import Resource from "./Resource";
 
 export default class CookedFood{
 
@@ -11,6 +13,7 @@ export default class CookedFood{
     private _bonus: resourceBonus;
     private _databaseId: string;
     private _owner: string;
+    private _resources: Array<Resource>;
 
     constructor(id:string){
         var found = CookedFood.getCookedFoodData(id)
@@ -21,7 +24,34 @@ export default class CookedFood{
             this._id = r.id;
             this._name = r.name
             this._bonus = r.bonus
+            this._emoji = r.emoji
         }
+    }
+
+    public getHealingBonus():string{
+        var health = this.bonus.health
+        var shield = this.bonus.shield
+        for (var i in this.resources){
+            health+=this.resources[i].bonus.health
+            shield+=this.resources[i].bonus.shield
+        }
+        return health+" ❤️ | "+shield+" 🛡️"
+    }
+
+    public getHealth():number{
+        var health = this.bonus.health
+        for (var i in this.resources){
+            health+=this.resources[i].bonus.health
+        }
+        return health
+    }
+
+    public getShield():number{
+        var shield = this.bonus.shield
+        for (var i in this.resources){
+            shield+=this.resources[i].bonus.shield
+        }
+        return shield
     }
 
     public static getCookedFoodData(resourceId:string):recipe{
@@ -42,6 +72,29 @@ export default class CookedFood{
         }else{
             return undefined
         }
+    }
+
+    public static async createFromResources(player:Player,resources:Array<Resource>):Promise<CookedFood>{
+        var cookedFoodFound:CookedFood
+        var cookedFoodPossible:Array<{id:string,points:number}>
+        for (var i in recipes){
+            var currentResources = resources.filter(f=>true)
+            var available = true
+            for (var j in recipes[i].need){
+                if (currentResources.find(r=>r.types.find(t=>t==recipes[i].need[j]))){
+                    currentResources.splice(currentResources.findIndex(r=>r.types.find(t=>t==recipes[i].need[j])),1)
+                }else{
+                    available=false
+                    break
+                }
+            }
+            if (available){
+                await player.removeResourcesInResources(resources)
+                var cookedFoodCreated = await player.addInCookedFood(recipes[i].id,resources)
+                return cookedFoodCreated
+            }
+        }
+        return null
     }
 
     
@@ -90,5 +143,11 @@ export default class CookedFood{
     }
     public set owner(value: string) {
         this._owner = value;
+    }
+    public get resources(): Array<Resource> {
+        return this._resources;
+    }
+    public set resources(value: Array<Resource>) {
+        this._resources = value;
     }
 }

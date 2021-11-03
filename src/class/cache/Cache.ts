@@ -55,6 +55,9 @@ export default class Cache {
         var date = Date.now()
         writeFileSync(__dirname+"/../../static/map_images/"+date,s)
         this.mapCards.set(pos.x+"-"+pos.y+"-"+z,date+"")
+        console.log("map added log")
+        console.log(this.mapCards.toJSON())
+        return null
     }
 
     static async dropFind(id:string):Promise<Drop>{

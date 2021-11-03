@@ -16,7 +16,7 @@ import Weapon from "../weapon/Weapon";
 
 export default class Player {
     static rapidity:number = 1
-    static visibilityRadius:number = 300
+    static visibilityRadius:number = 500
 
     private _id: string;
     private _discordUser: User;
@@ -26,7 +26,7 @@ export default class Player {
     private _servers:Array<string> = []
     private _cooldowns: Array<cooldown> = [];
     private _lastChannel: TextChannel|ThreadChannel;
-    private _box: Array<Box>;
+    private _box: Array<Box> = [];
     private _cookedFoods: Array<CookedFood> = [];
     
 
@@ -192,9 +192,17 @@ export default class Player {
             this.addInInventory("cailloux")
         }*/
     }
-    public async removeInResources(index:number){
-        var resourceRemove = this.resources.splice(index,1)
-        await Database.inventoryDatabase.deleteOne({"id":resourceRemove[0].databaseId})
+    public async removeIndexInResources(index:number){
+       var resourceRemove = this.resources.splice(index,1)
+       console.log("HEY")
+       console.log(resourceRemove[0])
+       await Database.resourceDatabase.deleteOne({"id":resourceRemove[0].databaseId})
+    }
+
+    public async removeResourcesInResources(resources:Array<Resource>){
+        for (var i in resources){
+            await this.removeIndexInResources(this.resources.findIndex(r=>r.databaseId== resources[i].databaseId))
+        }
     }
 
     public async addInResources(resource:string):Promise<Resource>{
@@ -217,12 +225,37 @@ export default class Player {
                 var r = new CookedFood(found.cookedfood_id)
                 r.owner = found.owner
                 r.databaseId = found.id
+                var resourcesUsed = []
+                for (var j in found.resources){
+                    resourcesUsed.push(new Resource(found.resources[j]))
+                }
+                r.resources = resourcesUsed
                 this.cookedFoods.push(r)
             }
         }
         /*if (foundArray.length == 0){
             this.addInInventory("cailloux")
         }*/
+    }
+
+    public async addInCookedFood(cookedfood:string,resourcesUsed:Array<Resource>):Promise<CookedFood>{
+        var id = Date.now().toString();
+        var newCookedFood = new CookedFood(cookedfood)
+        newCookedFood.owner = this.id
+        newCookedFood.databaseId = id
+        newCookedFood.resources = resourcesUsed
+        var databaseResources = []
+        for (var i in resourcesUsed){
+            databaseResources.push(resourcesUsed[i].id)
+        }
+        this.cookedFoods.push(newCookedFood)
+        await Database.cookedFoodDatabase.insertOne({"id":newCookedFood.databaseId,"owner":this.id,"cookedfood_id":cookedfood,"resources":databaseResources})
+        return newCookedFood
+    }
+
+    public async removeInCookedFood(index:number){
+        var cookedFood = this.cookedFoods.splice(index,1)
+        await Database.cookedFoodDatabase.deleteOne({"id":cookedFood[0].databaseId})
     }
     //--------------------------//
     //---------Cooldown---------//
@@ -278,6 +311,14 @@ export default class Player {
         }
     }
 
+    public async removeShield():Promise<boolean>{
+        if (this.cooldowns.find(c=>c.type=="SHIELD" && c.endTime>Date.now())){
+            await Database.playerCooldownDatabase.deleteOne({"type":"SHIELD","player":this.id})
+            return true
+        }else{
+            return false
+        }
+    }
     //--------------------------//
     //--------Mort joueur-------//
     //--------------------------//
@@ -344,6 +385,19 @@ export default class Player {
     //--------------------------//
     //-----------Divers---------//
     //--------------------------//
+
+    public async addLifePoint(life:{"health":number,shield:number}){
+        this.data.lifeStats.health+=life.health;
+        this.data.lifeStats.shield+=life.shield;
+        if (this.data.lifeStats.health>100){
+            this.data.lifeStats.health = 100
+        }
+        if (this.data.lifeStats.shield>200){
+            this.data.lifeStats.shield = 200
+        }
+        this.save()
+    }
+
     public getLifeBarre():{"health":string,"shield":string}{
         var finalHealth = ""
         if (this.data.lifeStats.health>0){
