@@ -12,11 +12,7 @@ export default class PlayerCreator {
             var databaseData = await this.getDatabaseUserFromId(id)
             if (databaseData!=undefined){
                 const player = new Player(fetchData,databaseData)
-                await player.loadInventory()
-                await player.loadBoxes()
-                await player.loadCooldowns()
-                await player.loadResources()
-                await player.loadCookedFood()
+                await player.loadAll()
                 return player
             }
         }

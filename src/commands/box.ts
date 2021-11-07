@@ -17,7 +17,7 @@ export = async function(data:commandSender){
     console.log(messageComponent)
     if (messageComponent instanceof SelectMenuInteraction){
         if (parseInt(messageComponent.values[0])){
-            const boxToOpen = thisPlayer.box[parseInt(messageComponent.values[0])-1]
+            const boxToOpen = thisPlayer.box[parseInt(messageComponent.values[0])]
             const weaponOpened = await boxToOpen.open()
             messageReceived.channel.send({embeds:[EmbedConstructor.boxOpened(weaponOpened,boxToOpen)]})
         }
@@ -25,7 +25,7 @@ export = async function(data:commandSender){
         messageComponent.deferUpdate()
         var totalWeapons =[]
         var totalBox = thisPlayer.box.length
-        for (let i=0;i<totalBox;i++){
+        for (let i=totalBox-1;i>=0;i--){
             var resultBoxOpen = await thisPlayer.box[i].open()
             totalWeapons.push(resultBoxOpen)
         }

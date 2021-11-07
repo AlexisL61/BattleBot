@@ -53,7 +53,7 @@ export default class Weapon {
                 for (var i in effectResult.data.playersTargeted){
                     if (!alreadyCheckedTarget.find(t=>t==effectResult.data.playersTargeted[i].player.id)){
                         if (effectResult.data.playersTargeted[i].player.checkIfDead(player)){
-                            finalMessage+="\n☠ "+player.discordUser.tag+" est mort\nVos récompenses se trouvent en mp!"
+                            finalMessage+="\n☠ "+effectResult.data.playersTargeted[i].player.discordUser.tag+" est mort\nVos récompenses se trouvent en mp!"
                         }
                         effectResult.data.playersTargeted[i].player.sendMp(player.discordUser.tag+" a utilisé un objet contre vous dans le salon <#"+data.channelSent.id+"> <t:"+Math.round(Date.now()/1000)+":R>")
                     }

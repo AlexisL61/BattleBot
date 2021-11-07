@@ -21,7 +21,7 @@ export default class MapGenerator {
         denivelePossibility.reverse()
         waterPossibility.reverse()
         
-        var alreadyOccupied = []
+        var alreadyOccupied = {}
         var count = 6
         //console.log(175/zoomP)
         var startX = 45+xMov/10+175-100/zoomP;
@@ -91,7 +91,7 @@ export default class MapGenerator {
                                         var forestValue = Math.abs(noise.simplex2((x) / forestZoom, (y) / forestZoom));
                                         if (forestValue > 0.75) type= "forest"
                                         
-                                        if (forestValue > 0.75 && Math.random()>0.75 && !alreadyOccupied.find(a=>a.x==x && a.y==y)){
+                                        if (forestValue > 0.75 && Math.random()>0.75 && !alreadyOccupied[x +"|"+y]){
                                             //valeur forest
                                             //Ajout point forest
                                             type = "forest"
@@ -100,9 +100,9 @@ export default class MapGenerator {
                                             for (var i = 0;i<paintSize/divider;i=i+1/divider){
                                                 for (var j = 0;j<paintSize/divider;j=j+1/divider){
                                                     if (i!=0 && j!=0){
-                                                        alreadyOccupied.push({x:x+i,y:y+j})
+                                                        alreadyOccupied[(x+i)+"|"+(y+j)] = true
+                                                      }
                                                     }
-                                                }
                                             }
                                         }else{
                                             if (!type) type= "plaine"
@@ -113,7 +113,7 @@ export default class MapGenerator {
                                     noise.seed(forestSeed)
                                     var forestValue = Math.abs(noise.simplex2((x) / forestZoom, (y) / forestZoom));
                                     if (forestValue > 0.75) type= "forest"
-                                    if (forestValue > 0.75 && Math.random()>0.75 && !alreadyOccupied.find(a=>a.x==x && a.y==y)){
+                                    if (forestValue > 0.75 && Math.random()>0.75 && !alreadyOccupied[x+"|"+y]){
                                         //valeur forest
                                         //Ajout point forest
                                         type= "forest"
@@ -122,7 +122,7 @@ export default class MapGenerator {
                                         for (var i = 0;i<paintSize/divider;i=i+1/divider){
                                             for (var j = 0;j<paintSize/divider;j=j+1/divider){
                                                 if (i!=0 && j!=0){
-                                                    alreadyOccupied.push({x:x+i,y:y+j})
+                                                    alreadyOccupied[(x+i)+"|"+(y+j)] = true
                                                 }
                                             }
                                         }
@@ -134,7 +134,7 @@ export default class MapGenerator {
                             }
                         }
                         //console.log(x+";"+y)
-                    if (!alreadyOccupied.find(a=>a.x==x && a.y==y)){
+                    if (!alreadyOccupied[x+"|"+y]){
                         //console.log((x-xMov-startX)*divider)
                         ctx.beginPath();
                         ctx.fillStyle = color;

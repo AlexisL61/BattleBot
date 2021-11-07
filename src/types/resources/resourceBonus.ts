@@ -3,7 +3,7 @@ import Effect from "../../class/effect/Effect";
 type resourceBonus = {
     "health":number,
     shield:number,
-    effects:Array<Effect>
+    effects:Array<resourceEffect>
 }
 
 export default resourceBonus

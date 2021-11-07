@@ -8,4 +8,5 @@ export default class Database {
     public static dropDatabase;
     public static resourceDatabase;
     public static cookedFoodDatabase;
+    public static playerEffectDatabase;
 }

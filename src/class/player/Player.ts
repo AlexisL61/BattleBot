@@ -1,9 +1,11 @@
 import { DMChannel, Guild, MessageEmbed, NewsChannel, TextBasedChannels, TextChannel, ThreadChannel, User } from "discord.js";
+import { cpuUsage } from "process";
 import databaseAttacker from "../../types/database/attacker";
 import databaseBox from "../../types/database/box";
 import databasePlayer from "../../types/database/player";
 import databaseWeapon from "../../types/database/weapon";
 import position from "../../types/position";
+import EffectsManager from "../../utility/EffectsManager";
 import EmbedConstructor from "../../utility/EmbedConstructor";
 import Box from "../box/Box";
 import Cache from "../cache/Cache";
@@ -12,6 +14,7 @@ import Drop from "../map/Drop";
 import CookedFood from "../resource/CookedFood";
 import Resource from "../resource/Resource";
 import Weapon from "../weapon/Weapon";
+import PlayerEffect from "./PlayerEffect";
 
 
 export default class Player {
@@ -28,6 +31,7 @@ export default class Player {
     private _lastChannel: TextChannel|ThreadChannel;
     private _box: Array<Box> = [];
     private _cookedFoods: Array<CookedFood> = [];
+    private _effects: Array<PlayerEffect> = [];
     
 
     /**
@@ -50,14 +54,86 @@ export default class Player {
         return this.inventory.findIndex(w=>w.name.fr==weaponName)
     }
 
+    public async loadAll(){
+        var data = await Database.playerDatabase.aggregate([
+            {
+                $lookup:{
+                    from:"Inventory",
+                    localField:"id",
+                    foreignField:"owner",
+                    as:"inventory"
+                },
+            },
+            {
+                $lookup:{
+                    from:"Box",
+                    localField:"id",
+                    foreignField:"owner",
+                    as:"box"
+                },
+            },
+            {
+                $lookup:{
+                    from:"Cooldown",
+                    localField:"id",
+                    foreignField:"player",
+                    as:"cooldown"
+                },
+            },
+            {
+                $lookup:{
+                    from:"Resource",
+                    localField:"id",
+                    foreignField:"owner",
+                    as:"resource"
+                },
+            },
+            {
+                $lookup:{
+                    from:"CookedFood",
+                    localField:"id",
+                    foreignField:"owner",
+                    as:"cookedFood"
+                },
+            },
+            {
+                $lookup:{
+                    from:"Effect",
+                    localField:"id",
+                    foreignField:"owner",
+                    as:"effect"
+                },
+            },
+            {
+                $match:{
+                    "id":this.id
+                }
+            }
+        ])
+        var found =await data.toArray()
+        found = found[0]
+        if (found){
+            this.inventory = []
+            this.box = []
+            this.resources = []
+            this.cookedFoods = []
+            this.effects = []
+            this.cooldowns = []
+            this.loadInventory(found.inventory)
+            this.loadBoxes(found.box)
+            this.loadResources(found.resource)
+            this.loadCooldowns(found.cooldown)
+            this.loadCookedFood(found.cookedFood)
+            this.loadEffects(found.effect)
+        }
+        console.log(found)
+    }
+
     //--------------------------//
     //--------Inventory---------//
     //--------------------------//
 
-    public async loadInventory(){
-        this.inventory = []
-        var foundArray:Array<databaseWeapon> =await Database.inventoryDatabase.find({"owner":this.id}).toArray()
-        console.log(foundArray)
+    public async loadInventory(foundArray:Array<databaseWeapon>){
         for (var i in foundArray){
             var found = foundArray[i]
             if (found){
@@ -67,9 +143,6 @@ export default class Player {
                 this.inventory.push(w)
             }
         }
-        /*if (foundArray.length == 0){
-            this.addInInventory("cailloux")
-        }*/
     }
 
     public async removeInInventory(index:number){
@@ -91,9 +164,7 @@ export default class Player {
     //-----------Box------------//
     //--------------------------//
 
-    public async loadBoxes(){
-        this.box = []
-        var foundArray:Array<databaseBox> =await Database.boxDatabase.find({"owner":this.id}).toArray()
+    public async loadBoxes(foundArray:Array<databaseBox>){
         for (var i in foundArray){
             var found = foundArray[i]
             if (found){
@@ -128,19 +199,18 @@ export default class Player {
     //--------------------------//
     //---------Attaques---------//
     //--------------------------//
-    public async loadCooldowns(){
-        var cooldownsFound = await Database.playerCooldownDatabase.find({player:this.id}).toArray()
+    public async loadCooldowns(cooldownsFound){
         this.cooldowns = cooldownsFound
     }
 
     public async getAttackablePlayers(server:Guild){
         var players:Array<Player> = []
-        var playerServers = await Database.playerServerDatabase.find({server:server.id}).toArray()
+        var playerServers = Cache.playersInServer.get(server.id)
         for (var i in playerServers){
-            if (playerServers[i].player!=this.id && await server.members.fetch(playerServers[i].player)){
-                var splayer = await Cache.playerFind(playerServers[i].player)
+            if (playerServers[i]!=this.id && await server.members.fetch(playerServers[i])){
+                var splayer = await Cache.playerFind(playerServers[i])
                 console.log(this.getDistance(splayer.getRealPosition()))
-                if (splayer!=undefined && this.getDistance(splayer.getRealPosition())<=Player.visibilityRadius){
+                if (splayer!=undefined && !splayer.data.dead && this.getDistance(splayer.getRealPosition())<=Player.visibilityRadius){
                     players.push(splayer)
                 }
             }
@@ -158,7 +228,7 @@ export default class Player {
         }
     }
 
-    public infligeDegats(totalDegats:number){
+    public async infligeDegats(totalDegats:number){
         for (var i =0;i<totalDegats;i++){
             if (this._data.lifeStats.shield>0){
                 this._data.lifeStats.shield--
@@ -168,18 +238,15 @@ export default class Player {
                 }
             }
         }
-        this.save()
+        await this.save()
     }
 
     //--------------------------//
     //---------Ressources-------//
     //--------------------------//
 
-    public async loadResources(){
-        this.resources = []
-        var foundArray:Array<databaseResource> =await Database.resourceDatabase.find({"owner":this.id}).toArray()
-        console.log(foundArray)
-        for (var i in foundArray){
+    public async loadResources(foundArray:Array<databaseResource>){
+       for (var i in foundArray){
             var found = foundArray[i]
             if (found){
                 var r = new Resource(found.resource_id)
@@ -215,10 +282,7 @@ export default class Player {
         return newResource
     }
 
-    public async loadCookedFood(){
-        this.cookedFoods = []
-        var foundArray:Array<databaseCookedFood> =await Database.cookedFoodDatabase.find({"owner":this.id}).toArray()
-        console.log(foundArray)
+    public async loadCookedFood(foundArray:Array<databaseCookedFood>){
         for (var i in foundArray){
             var found = foundArray[i]
             if (found){
@@ -313,6 +377,7 @@ export default class Player {
 
     public async removeShield():Promise<boolean>{
         if (this.cooldowns.find(c=>c.type=="SHIELD" && c.endTime>Date.now())){
+            this.cooldowns.splice(this.cooldowns.findIndex(c=>c.type=="SHIELD" && c.endTime>Date.now()),1)
             await Database.playerCooldownDatabase.deleteOne({"type":"SHIELD","player":this.id})
             return true
         }else{
@@ -328,6 +393,7 @@ export default class Player {
             this.data.dead = true
             this.sendMp(EmbedConstructor.dead(killer,Math.floor(this.data.coins*0.20)))
             this.giveDeathPrize()
+            this.data.movement = undefined
             return true
         }
         return false
@@ -392,10 +458,34 @@ export default class Player {
         if (this.data.lifeStats.health>100){
             this.data.lifeStats.health = 100
         }
-        if (this.data.lifeStats.shield>200){
-            this.data.lifeStats.shield = 200
+        if (this.data.lifeStats.shield>100){
+            this.data.lifeStats.shield = 100
         }
         this.save()
+    }
+
+    public async loadEffects(foundArray:Array<playerEffect>){
+        for (var i in foundArray){
+            var found = foundArray[i]
+            if (found){
+                var e = new PlayerEffect(found)
+                e.owner = found.owner
+                e.databaseId = found.id
+                this.effects.push(e)
+            }
+        }
+    }
+
+    //C'est PlayerEffect.ts qui met dans la bdd
+    public async addEffect(effect:PlayerEffect){
+        this.effects.push(effect)
+        EffectsManager.effects.push({"effect_type":effect.effect_type,"owner":effect.owner,"end_time":effect.end_time,"id":effect.databaseId,"power":effect.power,"start_time":effect.start_time})
+        //await Database.playerEffectDatabase.insertOne(effect.toObject())
+        
+    }
+
+    public async removeEffect(effect:PlayerEffect){
+        
     }
 
     public getLifeBarre():{"health":string,"shield":string}{
@@ -430,7 +520,7 @@ export default class Player {
                 finalShield+="<:MiddleEmpty:840547858960744459>"
             }
         }
-        if (this.data.lifeStats.shield==100){
+        if (this.data.lifeStats.shield>=100){
             finalShield+="<:EndingShield:840541109188821012>"
         }else{
             finalShield+="<:EmptyEndingShield:840547994319585332>"
@@ -451,10 +541,22 @@ export default class Player {
     }
 
     public async addServer(id:string){
-        if (await Database.playerServerDatabase.findOne({"server":id,"player":this.id})){
+        if (Cache.playersInServer.has(id)){
+            if (Cache.playersInServer.get(id).find(p=>p==this.id)){
+                return
+            }else{
+                await Database.playerServerDatabase.insertOne({"server":id,"player":this.id})
+                Cache.playersInServer.get(id).push(this.id)
+            }
         }else{
             await Database.playerServerDatabase.insertOne({"server":id,"player":this.id})
+            Cache.playersInServer.set(id,[this.id])
         }
+        //    Cache.playersInServer.find(p=>p.id==id).players.push(this)
+        /*if (await Database.playerServerDatabase.findOne({"server":id,"player":this.id})){
+        }else{
+            
+        }*/
     }
 
     public getTimeLeft():string{
@@ -478,7 +580,36 @@ export default class Player {
             return this.data.position
         }
         var distanceFinale = Math.sqrt(Math.pow(this.data.position.x-this.data.movement.position.x,2)+Math.pow(this.data.position.y-this.data.movement.position.y,2))
-        var timeSinceBeginning = (Date.now()-this.data.movement.start)/1000
+        var timeSinceBeginning = 0
+        var currentEffects = this.effects.filter(e=>e.effect_type=="SPEED" && e.end_time>this.data.movement.start)
+        currentEffects.sort((a,b)=>{
+            if (a.start_time>b.start_time){
+                return 1
+            }else{
+                return -1
+            }
+        })
+        for (let i = 0;i<currentEffects.length;i++){
+            currentEffects[i].variable_start_time = currentEffects[i].start_time
+            currentEffects[i].variable_end_time = currentEffects[i].end_time
+            if (currentEffects[i].variable_start_time<this.data.movement.start){
+                currentEffects[i].variable_start_time = this.data.movement.start
+            }
+            if (currentEffects[i].variable_end_time>Date.now()){
+                currentEffects[i].variable_end_time = Date.now()
+            }
+            timeSinceBeginning+=(currentEffects[i].variable_end_time-currentEffects[i].variable_start_time)*currentEffects[i].power
+            if (i+1!=currentEffects.length){
+                timeSinceBeginning+=(currentEffects[i+1].variable_start_time-currentEffects[i].variable_end_time)*1
+            }
+        }
+        if (currentEffects.length>0){
+            timeSinceBeginning+=(Date.now()-currentEffects[currentEffects.length-1].variable_end_time)
+            timeSinceBeginning+=currentEffects[0].variable_start_time-this.data.movement.start
+        }else{
+            timeSinceBeginning+=Date.now()-this.data.movement.start
+        }
+        timeSinceBeginning/=1000
         if (timeSinceBeginning>=distanceFinale*Player.rapidity){
             this.data.position = this.data.movement.position
             this.data.movement = undefined
@@ -569,5 +700,12 @@ export default class Player {
     }
     public set cookedFoods(value: Array<CookedFood>) {
         this._cookedFoods = value;
+    }
+    
+    public get effects(): Array<PlayerEffect> {
+        return this._effects;
+    }
+    public set effects(value: Array<PlayerEffect>) {
+        this._effects = value;
     }
 }

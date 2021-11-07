@@ -9,6 +9,7 @@ export = async function(data:commandSender){
     if (thisPlayer.data.dead){
         thisPlayer.data.lifeStats.health = 100
         thisPlayer.data.dead = false
+        thisPlayer.setRandomPosition()
         await thisPlayer.save()
         data.message.channel.send({embeds:[EmbedConstructor.respawnSuccess()]})
     }else{

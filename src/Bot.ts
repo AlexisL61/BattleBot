@@ -38,6 +38,7 @@ client.on("ready",async ()=>{
     Database.dropDatabase = mclient.db("Player").collection("Drop")
     Database.resourceDatabase = mclient.db("Player").collection("Resource")
     Database.cookedFoodDatabase = mclient.db("Player").collection("CookedFood")
+    Database.playerEffectDatabase = mclient.db("Player").collection("Effect")
     await Cache.init()
     PlayerCreator.client = client
     Map.client = client

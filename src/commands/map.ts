@@ -21,7 +21,7 @@ async function mainType(message:Message,thisPlayer:Player,alreadyAttackablePlaye
         }
         if (interaction.customId=="deplacement"){
             interaction.deferUpdate()
-            deplacementType(messageSent,thisPlayer,attackablePlayers)
+            deplacementType(messageSent,thisPlayer)
             componentCollector.stop()
         }
         if (interaction.customId=="nearplayers"){
@@ -56,12 +56,14 @@ async function nearPlayersType(message:Message,p:Player){
     })
 }
 
-async function deplacementType(message:Message,p:Player,opponents:Array<Player>){
+async function deplacementType(message:Message,p:Player){
+    var opponents = await p.getAttackablePlayers(message.guild)
     var pos = {x:p.getRealPosition().x,y:p.getRealPosition().y}
     var zoom =2
     message.edit({embeds:[await EmbedConstructor.mapMoveEmbed(p,pos,zoom,opponents)],components:ComponentsConstructor.mapMoveComponents(zoom,p.data.movement!=undefined)})
     var messageComponentcollector = message.createMessageComponentCollector({filter:(interaction)=>interaction.user.id==p.id})
     messageComponentcollector.on("collect",async (interaction)=>{
+        interaction.deferUpdate()
         if (idToPos[interaction.customId]){
             pos.x+=idToPos[interaction.customId].x
             pos.y+=idToPos[interaction.customId].y
@@ -79,7 +81,7 @@ async function deplacementType(message:Message,p:Player,opponents:Array<Player>)
             p.data.position = p.getRealPosition()
             p.data.movement = {position:{x:pos.x,y:pos.y},start:Date.now()}
             p.save()
-            message.channel.send("Vous vous déplacez vers "+p.data.movement.position.x+" ; "+p.data.movement.position.y+"\nVous y arriverez "+p.getTimeLeft())
+            message.channel.send("<@"+p.discordUser.id+"> Vous vous déplacez vers "+p.data.movement.position.x+" ; "+p.data.movement.position.y+"\nVous y arriverez "+p.getTimeLeft())
         }
         if (interaction.customId=="cancel"){
             mainType(message,p)
@@ -90,7 +92,6 @@ async function deplacementType(message:Message,p:Player,opponents:Array<Player>)
             p.data.movement = undefined
             p.save()
         }
-        interaction.deferUpdate()
         var time = Date.now()
         var mapEmbed = await EmbedConstructor.mapMoveEmbed(p,pos,zoom,opponents)
         console.log(Date.now()-time)
@@ -102,5 +103,5 @@ async function deplacementType(message:Message,p:Player,opponents:Array<Player>)
 export = async function(data:commandSender){
     const userId = data.type=="MESSAGE"? data.message.author.id:data.interaction.user.id
     var thisPlayer = await Cache.playerFind(userId)
-    mainType(await CommandSenderManager.reply(data,{embeds:[new MessageEmbed().setDescription("Chargement")]}),thisPlayer)
+    mainType(await CommandSenderManager.reply(data,{embeds:[new MessageEmbed().setDescription("Chargement").setImage("https://media.discordapp.net/attachments/760153787632713748/770738506208903238/loadingGif.gif")]}),thisPlayer)
 }

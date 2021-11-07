@@ -8,6 +8,7 @@ import ShopItem from "../class/shop/ShopItem";
 import Weapon from "../class/weapon/Weapon";
 import box from "../commands/box";
 import cook from "../commands/cook";
+import playerEffects from "../static/playerEffectList";
 import { rarities } from "../static/rarityList";
 import { totalCommands } from "../types/commandFile";
 import position from "../types/position";
@@ -41,6 +42,12 @@ export default class EmbedConstructor{
         embed.addField("Argent",player.data.coins+" 💸")
         var attackableData = player.isAttackable()
         embed.addField("Protection",attackableData.result?"Aucune protection":attackableData.reason+"( fin <t:"+Math.floor(attackableData.end/1000)+":R>)")
+        var currentEffects = player.effects.filter(e=>e.end_time>Date.now())
+        var effets = ""
+        for (var i in currentEffects){
+            effets += playerEffects.find(e=>e.id==currentEffects[i].effect_type).toString((currentEffects[i].end_time-Date.now())/1000,currentEffects[i].power)+"\n"
+        }
+        embed.addField("Effets",effets!=""?effets:"Aucun effet")
        return embed;
     }
 
@@ -154,7 +161,7 @@ export default class EmbedConstructor{
             opponentsList+=((parseInt(i)+1)+" : "+opponents[i].discordUser.tag+" "+(!opponents[i].isAttackable?"🛡️":"")+"\n")
         }
         embed.setDescription(opponentsList)
-        var imageBuffer = await Map.currentMap.createFromCoords(p.getRealPosition(),2.5,{playerLocation:p.getRealPosition(),opponents:opponents,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined,showOpponentsNum:true})
+        var imageBuffer = await Map.currentMap.createFromCoords(p.getRealPosition(),2,{playerLocation:p.getRealPosition(),opponents:opponents,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined,showOpponentsNum:true})
         var imageURL = await Map.hostBuffer(imageBuffer)
         embed.setImage(imageURL)
         return embed
@@ -258,8 +265,11 @@ export default class EmbedConstructor{
         embed.setDescription("Votre position: "+p.getRealPosition().x+" ; "+p.getRealPosition().y+"\nPosition de la caméra: "+pos.x+" ; "+pos.y)
         
             console.log(p.visibleDrop(p.lastChannel.guild.id))
+            var originalDate = Date.now()
             var imageBuffer = await Map.currentMap.createFromCoords(pos,zoom,{playerLocation:p.getRealPosition(),opponents:opponents,pointers:p.data.movement?[{size:60,icon:"./static/images/map/run.png",pos:p.data.movement.position}]:undefined,drops:p.visibleDrop(p.lastChannel.guild.id)})
+            console.log(Date.now()-originalDate)
             var imageURL = await Map.hostBuffer(imageBuffer)
+            console.log(Date.now()-originalDate)
             embed.setImage(imageURL)
         return embed
     }
@@ -427,6 +437,7 @@ export default class EmbedConstructor{
             shield+=cookedFood.resources[i].bonus.shield
         }
         embed.addField("Soins",health+"❤️ "+shield+"🛡️")
+        embed.addField("Effets",cookedFood.getEffects()!=""?cookedFood.getEffects():"Aucun effet")
         return embed
     }
 
@@ -437,7 +448,7 @@ export default class EmbedConstructor{
         var description = ""
         var data = player.cookedFoods
         for (var i in data){
-            description+=data[i].name.fr+" ("+data[i].getHealingBonus()+")\n"
+            description+=data[i].name.fr+" ("+data[i].getHealingBonus()+")"+data[i].getEffects()+"\n"
         }
         embed.setDescription(description)
         return embed
@@ -449,7 +460,7 @@ export default class EmbedConstructor{
         var description = "Choisissez un plat à manger\n\n"
         var data = player.cookedFoods
         for (var i in data){
-            description+=data[i].name.fr+" ("+data[i].getHealingBonus()+")\n"
+            description+=data[i].name.fr+" ("+data[i].getHealingBonus()+")"+data[i].getEffects()+"\n"
         }
         embed.setDescription(description)
         return embed
@@ -485,6 +496,8 @@ export default class EmbedConstructor{
         embed.setDescription("L'arme n'a pas été trouvée")
         return embed
     }
+    
+
     
     
 }

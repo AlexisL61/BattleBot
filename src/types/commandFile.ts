@@ -7,7 +7,7 @@ type commandFile = {
 
 var totalCommands:Array<commandFile> = [];
 
-//totalCommands.push({"file":"test","command":"test","needAlive":true})
+totalCommands.push({"file":"test","command":"test","needAlive":true,"description":"Ceci n'est qu'un test"})
 totalCommands.push({"file":"help","command":"help","needAlive":true,"description":"Affiche ce help"})
 totalCommands.push({"file":"profil","command":"profil","needAlive":true,"description":"Affiche votre profil"})
 totalCommands.push({"file":"use","command":"use","needAlive":true,"description":"Utilise une arme dans votre inventaire"})

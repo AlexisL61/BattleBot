@@ -27,6 +27,9 @@ export default class Push extends Effect {
             differencesNumber = Player.visibilityRadius-differencesNumber;
             differencesPosition = {"x":differencesPosition.x*differencesNumber*this.puissance,"y":differencesPosition.y*differencesNumber*this.puissance};
             target.data.position = ({"x":Math.round(target.getRealPosition().x-differencesPosition.x),"y":Math.round(target.getRealPosition().y-differencesPosition.y)});
+            if (target.data.movement){
+                target.data.movement.start=Date.now();
+            }
             await target.save();
             return {"success":true,"data":{"message":"🌬️ "+target.discordUser.tag+" s'est fait pousser","playersTargeted":[{player:target}]}}
         }

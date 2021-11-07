@@ -1,3 +1,4 @@
+import { MessageEmbed } from "discord.js"
 import Cache from "../class/cache/Cache"
 import Map from "../class/map/Map"
 import Resource from "../class/resource/Resource"
@@ -11,6 +12,7 @@ export = async function(data:commandSender){
     var thisPlayer = await Cache.playerFind(userId)
     console.log(thisPlayer.cooldowns)
     if (!thisPlayer.hasCooldown("SEARCH").result){
+        var messageSent =await  CommandSenderManager.reply(data,{embeds:[new MessageEmbed().setDescription("Recherche...").setImage("https://media.discordapp.net/attachments/760153787632713748/770738506208903238/loadingGif.gif")]})
         var thisPlayerLocation = Map.currentMap.getLocationFromCoords(thisPlayer.getRealPosition())
         var resources = Resource.generateResourcesFromLocationType(thisPlayerLocation.type)
         var resourcesGotten = ""
@@ -23,7 +25,7 @@ export = async function(data:commandSender){
             resourcesGotten+= resourceCreated.emoji+" "+ resourceCreated.name.fr+" de qualité "+resourceCreated.rarity.emoji+" "+resourceCreated.rarity.name.fr+" x"+numberChoose+"\n"
         }
         await thisPlayer.addCooldown("SEARCH",60*60)
-        CommandSenderManager.reply(data,{embeds:[EmbedConstructor.searchDone(resourcesGotten)]})
+        messageSent.edit({embeds:[EmbedConstructor.searchDone(resourcesGotten)]})
     }else{
         CommandSenderManager.reply(data,{embeds:[EmbedConstructor.searchOnCooldown(resourcesGotten)]})
     }

@@ -149,7 +149,7 @@ var weapons:Array<weaponType> =
         rarity: "uncommon",
         info: {
             description: "Une lance acérée capable d'abatre n'importe quel ennemi",
-            use: "Lancez votre lance\nInflige 25 dégâts\n(Chance de coup raté accru)",
+            use: "Lancez votre lance\nInflige 25 dégâts\n(Chance de coup raté accrue)",
         },
     },
     {
@@ -174,7 +174,7 @@ var weapons:Array<weaponType> =
             }),
             toMention: "La personne à attaquer",
         }),
-        rarity: "common",
+        rarity: "uncommon",
         info: {
             description: "Une batte de baseball",
             use: "Attaquez avec votre batte\nInflige 6 dégats\nRepousse un adversaire",

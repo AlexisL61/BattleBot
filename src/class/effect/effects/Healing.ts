@@ -27,8 +27,8 @@ export default class Healing extends Effect{
         if (target.data.lifeStats.health>100){
             target.data.lifeStats.health = 100
         }
-        if (target.data.lifeStats.shield>200){
-            target.data.lifeStats.shield = 200
+        if (target.data.lifeStats.shield>100){
+            target.data.lifeStats.shield = 100
         }
         target.save()
         return {"success":true,"data":{"message":":heart: **Soin de "+this.health+" :heart: et de "+this.shield+" :shield:** pour "+target.discordUser.tag}}

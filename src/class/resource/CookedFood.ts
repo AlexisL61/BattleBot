@@ -1,3 +1,4 @@
+import playerEffects from "../../static/playerEffectList";
 import recipes from "../../static/recipeList";
 import recipe from "../../types/resources/recipe";
 import resourceBonus from "../../types/resources/resourceBonus";
@@ -35,7 +36,27 @@ export default class CookedFood{
             health+=this.resources[i].bonus.health
             shield+=this.resources[i].bonus.shield
         }
+        var bonus = ""
+        if (this.bonus.effects.length>=1){
+            bonus+="\n"
+        }
+        for (var i in this.bonus.effects){
+            var thisAvailableEffect = playerEffects.find(f=>f.id==this.bonus.effects[i].effect_type)
+            bonus+="-> "+thisAvailableEffect.toString(this.bonus.effects[i].duration,this.bonus.effects[i].power)+"\n"
+        }
         return health+" ❤️ | "+shield+" 🛡️"
+    }
+
+    public getEffects():string{
+        var bonus = ""
+        if (this.bonus.effects.length>=1){
+            bonus+="\n"
+        }
+        for (var i in this.bonus.effects){
+            var thisAvailableEffect = playerEffects.find(f=>f.id==this.bonus.effects[i].effect_type)
+            bonus+="-> "+thisAvailableEffect.toString(this.bonus.effects[i].duration,this.bonus.effects[i].power)+"\n"
+        }
+        return bonus
     }
 
     public getHealth():number{
@@ -62,7 +83,7 @@ export default class CookedFood{
         }
     }
 
-    public static async getDatabaseResource(weaponId:string):Promise<CookedFood>{
+    public static async getDatabaseCookedFood(weaponId:string):Promise<CookedFood>{
         var found:databaseCookedFood =await Database.resourceDatabase.findOne({"id":weaponId})
         if (found){
             var c = new CookedFood(found.cookedfood_id)
@@ -89,8 +110,8 @@ export default class CookedFood{
                 }
             }
             if (available){
-                await player.removeResourcesInResources(resources)
                 var cookedFoodCreated = await player.addInCookedFood(recipes[i].id,resources)
+                await player.removeResourcesInResources(resources)
                 return cookedFoodCreated
             }
         }
@@ -148,6 +169,15 @@ export default class CookedFood{
         return this._resources;
     }
     public set resources(value: Array<Resource>) {
+        if (!this.bonus.effects){
+            this.bonus.effects = []
+        }
         this._resources = value;
+        for (var i in value){
+            for (var j in value[i].bonus.effects){
+                this.bonus.effects.push(value[i].bonus.effects[j])
+            }
+
+        }
     }
 }

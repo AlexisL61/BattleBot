@@ -13,6 +13,7 @@ export default class Cache {
     static players: Collection<string, Player> = new Collection();
     static mapCards:Collection<string,string> = new Collection();
     static drops:Collection<string,Drop> = new Collection();
+    static playersInServer:Collection<string,Array<string>> = new Collection();
 
     /**
      * Récupère le joueur dans le cache, créé un nouveau joueur sinon
@@ -79,6 +80,13 @@ export default class Cache {
             var thisDrop = new Drop({timeAvailable:foundDrops[i].timeAvailable,position:foundDrops[i].position,content:foundDrops[i].content,server:foundDrops[i].server,owner:foundDrops[i].owner})
             thisDrop.database_id = foundDrops[i].id
             this.drops.set(foundDrops[i].id,thisDrop)
+        }
+        var foundServers:Array<server> = await Database.playerServerDatabase.find().toArray()
+        for (var i in foundServers){
+            if (!this.playersInServer.has(foundServers[i].server)){
+                this.playersInServer.set(foundServers[i].server,[])
+            }
+            this.playersInServer.get(foundServers[i].server).push(foundServers[i].player)
         }
     }
 }

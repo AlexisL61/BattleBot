@@ -1,5 +1,7 @@
 import { SelectMenuInteraction } from "discord.js"
 import Cache from "../class/cache/Cache"
+import PlayerEffect from "../class/player/PlayerEffect"
+import { resources } from "../static/resourceList"
 import commandSender from "../types/commandSender"
 import CommandSenderManager from "../utility/CommandSenderManager"
 import ComponentsConstructor from "../utility/ComponentsConstructor"
@@ -17,6 +19,10 @@ export = async function(data:commandSender){
             var currentCookedFoodIndex = thisPlayer.cookedFoods.findIndex(c=>c.databaseId==value)
             var currentCookedFood = thisPlayer.cookedFoods[currentCookedFoodIndex]
             await thisPlayer.addLifePoint({health:currentCookedFood.getHealth(),shield:currentCookedFood.getShield()})
+            for (var i in currentCookedFood.bonus.effects){
+                var effect = currentCookedFood.bonus.effects[i]
+                PlayerEffect.createFromResource(currentCookedFood.bonus.effects[i],thisPlayer)
+            }
             await thisPlayer.removeInCookedFood(currentCookedFoodIndex)
             await messageSent.channel.send({embeds:[EmbedConstructor.cookedFoodEaten(currentCookedFood)]})
             messageSent.delete()
