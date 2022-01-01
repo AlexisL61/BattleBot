@@ -15,6 +15,7 @@ import CookedFood from "../resource/CookedFood";
 import Resource from "../resource/Resource";
 import Weapon from "../weapon/Weapon";
 import PlayerEffect from "./PlayerEffect";
+import playerEffect from "../../types/database/playerEffect"
 
 
 export default class Player {

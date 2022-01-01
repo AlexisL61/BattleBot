@@ -9,7 +9,8 @@ type databasePlayer = {
     },
     dead:boolean,
     position:{x:number,y:number},
-    movement?:{position:position,start:number}
+    movement?:{position:position,start:number},
+    medals?:number
 }
 
 var _playerDefault:databasePlayer= {
@@ -20,7 +21,8 @@ var _playerDefault:databasePlayer= {
         shield:0,
     },
     dead:false,
-    position:undefined
+    position:undefined,
+    medals:0
 }
 
 export default databasePlayer

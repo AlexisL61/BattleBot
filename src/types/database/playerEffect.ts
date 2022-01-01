@@ -6,3 +6,5 @@ type playerEffect = {
     end_time: number,
     owner:string
 }
+
+export default playerEffect
