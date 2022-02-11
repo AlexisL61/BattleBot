@@ -1,7 +1,7 @@
 import Discord, { CommandInteraction, Intents, Interaction, Message, MessageMentions, TextChannel, ThreadChannel } from "discord.js"
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { SlashCommandBuilder } = require('@discordjs/builders');
+import { SlashCommandBuilder } from '@discordjs/builders';
 import Cache from "./class/cache/Cache";
 import Database from "./class/database/Database";
 import Map from "./class/map/Map";
@@ -39,6 +39,8 @@ client.on("ready",async ()=>{
     Database.resourceDatabase = mclient.db("Player").collection("Resource")
     Database.cookedFoodDatabase = mclient.db("Player").collection("CookedFood")
     Database.playerEffectDatabase = mclient.db("Player").collection("Effect")
+    Database.clanDatabase = mclient.db("Player").collection("Clan")
+    Database.clanPlayerDatabase = mclient.db("Player").collection("ClanPlayer")
     await Cache.init()
     PlayerCreator.client = client
     Map.client = client
@@ -46,19 +48,39 @@ client.on("ready",async ()=>{
         .new()
     console.log(process.env.discordtoken)
     const rest = new REST({ version: '9' }).setToken(process.env.discordtoken);
+    const data = new SlashCommandBuilder()
+	.setName('clan')
+	.setDescription('Montre votre clan')
+    .addSubcommand(subcommand =>
+		subcommand
+			.setName('view')
+			.setDescription('Montre votre clan'))
+    .addSubcommand(subcommand =>
+		subcommand
+			.setName('invite')
+			.setDescription('Invite un utilisateur dans votre clan')
+			.addUserOption(option => option.setName('utilisateur').setDescription("L'utilisateur à inviter").setRequired(true)))
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName('kick')
+            .setDescription('Exclus un utilisateur de votre clan')
+            .addUserOption(option => option.setName('utilisateur').setDescription("L'utilisateur à exclure").setRequired(true)))
     await rest.post(
         Routes.applicationGuildCommands("839149703132086273", "839149428962885652"),
-        { body: {
-            "name": "use",
-            "description": "Utilise une arme de votre inventaire"
-          }},
+        { body: data},
     );
 
 })
 
 async function onMessageInteraction(type:"MESSAGE"|"INTERACTION",message?:Message,interaction?:CommandInteraction){
-    console.log(interaction)
-    var commandFound = type=="MESSAGE"?commands.find(c=>message.content.replace(prefix,"").startsWith(c.command)): commands.find(c=>interaction.commandName==c.command)
+    var finalCommandName = ""
+    if (type=="INTERACTION"){
+        finalCommandName = interaction.commandName
+        try {
+            finalCommandName += "_"+interaction.options.getSubcommand()
+        }catch(e){}
+    }
+    var commandFound = type=="MESSAGE"?commands.find(c=>message.content.replace(prefix,"").startsWith(c.command)): commands.find(c=>finalCommandName==c.command)
     if (commandFound){
         console.log(commandFound)
         if (commandFound.needAlive){

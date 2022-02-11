@@ -149,4 +149,16 @@ export default class ComponentsConstructor{
         }
         return []
     }
+
+    public static notInClanComponent():Array<MessageActionRow>{
+        const firstRow = new MessageActionRow()
+        firstRow.addComponents(new MessageButton({customId:"create",label:"Créer un clan",style:"PRIMARY"}))
+        return [firstRow]
+    }
+
+    public static clanInvitationComponent():Array<MessageActionRow>{
+        const firstRow = new MessageActionRow()
+        firstRow.addComponents(new MessageButton({customId:"join",label:"Rejoindre le clan",style:"SUCCESS"}))
+        return [firstRow]
+    }
 }

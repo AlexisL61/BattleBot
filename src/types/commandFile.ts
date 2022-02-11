@@ -25,6 +25,8 @@ totalCommands.push({"file":"food","command":"food","needAlive":true,"description
 totalCommands.push({"file":"cook","command":"cook","needAlive":true,"description":"Permet de cuisiner un plat"})
 totalCommands.push({"file":"eat","command":"eat","needAlive":true,"description":"Permet de manger un plat"})
 totalCommands.push({"file":"info","command":"info","needAlive":true,"description":"Permet de voir les informations d'une arme"})
+totalCommands.push({"file":"clan/view","command":"clan_view","needAlive":true,"description":"Permet de voir votre clan"})
+totalCommands.push({"file":"clan/invite","command":"clan_invite","needAlive":true,"description":"Permet d'inviter une personne sur votre clan"})
 
 export {totalCommands};
 export default commandFile;

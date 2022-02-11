@@ -25,5 +25,12 @@ var _playerDefault:databasePlayer= {
     medals:0
 }
 
+type databaseClanPlayer = {
+    id:string,
+    clan:string,
+    role:string
+}
+
 export default databasePlayer
 export {_playerDefault}
+export {databaseClanPlayer}

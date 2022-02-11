@@ -1,3 +1,4 @@
+import playerEffect from "../../types/database/playerEffect";
 import Database from "../database/Database";
 import Player from "./Player";
 

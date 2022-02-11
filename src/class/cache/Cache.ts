@@ -3,6 +3,8 @@ import { Client, Collection } from "discord.js";
 import { fstat, writeFileSync } from "fs";
 import drop from "../../types/database/drop";
 import position from "../../types/position";
+import Clan from "../clan/Clan";
+import ClanCreator from "../clan/ClanCreator";
 import Database from "../database/Database";
 import Drop from "../map/Drop";
 import Player from "../player/Player";
@@ -11,6 +13,7 @@ import PlayerCreator from "../player/PlayerCreator";
 export default class Cache {
     static client:Client;
     static players: Collection<string, Player> = new Collection();
+    static clans: Collection<string, Clan> = new Collection();
     static mapCards:Collection<string,string> = new Collection();
     static drops:Collection<string,Drop> = new Collection();
     static playersInServer:Collection<string,Array<string>> = new Collection();
@@ -29,6 +32,16 @@ export default class Cache {
             return thisPlayer
         }
     }
+    
+    static async clanFind(id:string):Promise<Clan>{
+        if (this.clans.has(id)){
+            return this.clans.get(id)
+        }else{
+            const thisClan = await ClanCreator.fromId(id)
+            if (thisClan!=undefined) this.addClan(thisClan)
+            return thisClan
+        }
+    }
 
     /**
      * Ajoute le joueur au cache
@@ -38,6 +51,15 @@ export default class Cache {
     static addPlayer(player:Player):boolean{
         if (!this.players.has(player.id)){
             this.players.set(player.id,player)
+            return true
+        }else{
+            return false
+        }
+    }
+
+    static addClan(clan:Clan):boolean{
+        if (!this.clans.has(clan.id)){
+            this.clans.set(clan.id,clan)
             return true
         }else{
             return false

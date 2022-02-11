@@ -2,7 +2,7 @@ import { DMChannel, Guild, MessageEmbed, NewsChannel, TextBasedChannels, TextCha
 import { cpuUsage } from "process";
 import databaseAttacker from "../../types/database/attacker";
 import databaseBox from "../../types/database/box";
-import databasePlayer from "../../types/database/player";
+import databasePlayer, { databaseClanPlayer } from "../../types/database/player";
 import databaseWeapon from "../../types/database/weapon";
 import position from "../../types/position";
 import EffectsManager from "../../utility/EffectsManager";
@@ -16,6 +16,9 @@ import Resource from "../resource/Resource";
 import Weapon from "../weapon/Weapon";
 import PlayerEffect from "./PlayerEffect";
 import playerEffect from "../../types/database/playerEffect"
+import leagues from "../../static/leagueList";
+import ClanPlayer from "./ClanPlayer";
+import Clan from "../clan/Clan";
 
 
 export default class Player {
@@ -34,6 +37,7 @@ export default class Player {
     private _cookedFoods: Array<CookedFood> = [];
     private _effects: Array<PlayerEffect> = [];
     
+    private _clanPlayer: ClanPlayer;
 
     /**
      * Représente un joueur sur BattleBot
@@ -106,6 +110,14 @@ export default class Player {
                 },
             },
             {
+                $lookup:{
+                    from:"ClanPlayer",
+                    localField:"id",
+                    foreignField:"id",
+                    as:"clan"
+                },
+            },
+            {
                 $match:{
                     "id":this.id
                 }
@@ -126,8 +138,26 @@ export default class Player {
             this.loadCooldowns(found.cooldown)
             this.loadCookedFood(found.cookedFood)
             this.loadEffects(found.effect)
+            await this.loadClan(found.clan)
         }
         console.log(found)
+    }
+
+    //--------------------------//
+    //----------Clan------------//
+    //--------------------------//
+
+    public async loadClan(foundArray:Array<databaseClanPlayer>){
+        for (var i in foundArray){
+            var found = foundArray[i]
+            if (found){
+                console.log(found)
+                var clan = await Cache.clanFind(found.clan)
+                console.log(clan)
+                this.clanPlayer = new ClanPlayer(found, clan)
+                console.log(this.clanPlayer)
+            }
+        }
     }
 
     //--------------------------//
@@ -208,7 +238,11 @@ export default class Player {
         var players:Array<Player> = []
         var playerServers = Cache.playersInServer.get(server.id)
         for (var i in playerServers){
-            if (playerServers[i]!=this.id && await server.members.fetch(playerServers[i])){
+            var memberFetched = undefined
+            try {
+                memberFetched = await server.members.fetch(playerServers[i])
+            } catch (error) {}
+            if (playerServers[i]!=this.id && memberFetched){
                 var splayer = await Cache.playerFind(playerServers[i])
                 console.log(this.getDistance(splayer.getRealPosition()))
                 if (splayer!=undefined && !splayer.data.dead && this.getDistance(splayer.getRealPosition())<=Player.visibilityRadius){
@@ -489,6 +523,9 @@ export default class Player {
         
     }
 
+    //--------------------------//
+    //--------Textes------------//
+    //--------------------------//
     public getLifeBarre():{"health":string,"shield":string}{
         var finalHealth = ""
         if (this.data.lifeStats.health>0){
@@ -527,6 +564,19 @@ export default class Player {
             finalShield+="<:EmptyEndingShield:840547994319585332>"
         }
         return {"health":finalHealth,"shield":finalShield}
+    }
+
+    public getLeagueText():string{
+        var medals = this.data.medals?this.data.medals:0
+        var league:league = leagues[0]
+        for (var i in leagues){
+            if (medals>=leagues[i].minimum_medals){
+                league = leagues[i]
+            }else{
+                break
+            }
+        }
+        return league.name.fr+" ("+medals+" médailles)"
     }
 
     public setRandomPosition(){
@@ -708,5 +758,12 @@ export default class Player {
     }
     public set effects(value: Array<PlayerEffect>) {
         this._effects = value;
+    }
+    
+    public get clanPlayer(): ClanPlayer {
+        return this._clanPlayer;
+    }
+    public set clanPlayer(value: ClanPlayer) {
+        this._clanPlayer = value;
     }
 }

@@ -34,12 +34,128 @@ export default class EmbedConstructor{
         embed.setDescription(type=="ME"?"Vous devez tout d'abord être enregistré sur le bot avec b!register.":"Cette personne doit être enregistrée sur le bot avec b!register")
         return embed
     }
+
+    public static playerClan(player:Player):MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Clan")
+        embed.addField("Nom",player.clanPlayer.clan.name)
+        embed.addField("Membres",player.clanPlayer.clan.getMembersText())
+        return embed
+    }
+
+    public static playerNotInClan():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Clan")
+        embed.setDescription("Vous n'êtes pas dans un clan. Vous pouvez en créer un en appuyant sur le bouton ci-dessous.")
+        return embed
+    }
+
+    public static playerNotInClanWithoutCreation():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Clan")
+        embed.setDescription("Vous n'êtes pas dans un clan. Vous pouvez en créer un en appuyant sur le bouton ci-dessous.")
+        return embed
+    }
+
+    public static playerNotInSameClan():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Clan")
+        embed.setDescription("Ce joueur n'est pas dans le même clan que vous, il n'est donc pas possible de l'exclure")
+        return embed
+    }
+
+    public static clanCreationAskName():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Création clan")
+        embed.setDescription("Envoyez dans votre prochain message le nom de votre clan")
+        return embed
+    }
+
+    public static clanCreated(name:string):MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Création clan")
+        embed.setDescription("Le clan "+name+" a été créé avec succès")
+        return embed
+    }
+
+    public static clanCreationFailed():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Création clan")
+        embed.setDescription("Une erreur est survenue dans la création du clan, veuillez rééssayer")
+        return embed
+    }
+
+    public static clanKickNotAuthorized():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Clan")
+        embed.setDescription("Vous n'avez pas les droits nécessaires pour exclure un joueur du clan. (Nécessite le rôle leader ou admin)")
+        return embed
+    }
+
+    public static clanCantKickYourself():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Clan")
+        embed.setDescription("Vous ne pouvez pas vous exclure vous-même")
+        return embed
+    }
+
+    public static clanKickSuccess():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Clan")
+        embed.setDescription("Le joueur a bien été exclu du clan")
+        return embed
+    }
+
+    public static clanKickFail():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Clan")
+        embed.setDescription("Une erreur est survenue lors de l'exclusion du joueur du clan, veuillez rééssayer")
+        return embed
+    }
+
+    
+    public static playerAlreadyInClan(): MessageEmbed  {
+        var embed = new MessageEmbed()
+        embed.setTitle("Clan")
+        embed.setDescription("Cette personne est déjà dans un clan. Vous ne pouvez donc pas l'inviter")
+        return embed
+    }
+
+    public static clanInvitation(player:Player):MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Invitation")
+        embed.setDescription(player.discordUser.tag+" vous a invité à rejoindre le clan "+player.clanPlayer.clan.name+"\nVous pouvez accepter l'invitation en appuyant sur le bouton ci-dessous.")
+        return embed
+    }
+
+    public static clanInvitationSent():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Invitation")
+        embed.setDescription("L'invitation a bien été envoyée à l'utilisateur")
+        return embed
+    }
+
+    public static clanInvitationAcceptedSuccess():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Invitation")
+        embed.setDescription("Invitation acceptée avec succès ! Vous faites maintenant parti du clan")
+        return embed
+    }
+
+    public static clanInvitationAcceptedFail():MessageEmbed {
+        var embed = new MessageEmbed()
+        embed.setTitle("Invitation")
+        embed.setDescription("Une erreur est survenue. L'invitation")
+        return embed
+    }
+
     public static playerProfil(player:Player):MessageEmbed {
         var embed = new MessageEmbed()
         embed.setTitle("Profil de "+player.discordUser.tag)
         var lifeStats = player.getLifeBarre()
         embed.addField("Stats vie",lifeStats.health+" "+player.data.lifeStats.health+" ❤️\n"+lifeStats.shield+" "+player.data.lifeStats.shield+" 🛡️\n")
         embed.addField("Argent",player.data.coins+" 💸")
+        embed.addField("League",player.getLeagueText())
         var attackableData = player.isAttackable()
         embed.addField("Protection",attackableData.result?"Aucune protection":attackableData.reason+"( fin <t:"+Math.floor(attackableData.end/1000)+":R>)")
         var currentEffects = player.effects.filter(e=>e.end_time>Date.now())

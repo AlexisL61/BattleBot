@@ -1,6 +1,7 @@
 import Database from "../class/database/Database"
 import Cron from "node-cron"
 import Cache from "../class/cache/Cache"
+import playerEffect from "../types/database/playerEffect"
 
 
 export default class EffectsManager {
