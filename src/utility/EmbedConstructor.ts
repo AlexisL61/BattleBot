@@ -13,6 +13,7 @@ import { rarities } from "../static/rarityList";
 import { totalCommands } from "../types/commandFile";
 import position from "../types/position";
 import weaponType from "../types/weaponType";
+import CanvasHelper from "./CanvasHelper";
 
 export default class EmbedConstructor{
     
@@ -149,7 +150,7 @@ export default class EmbedConstructor{
         return embed
     }
 
-    public static playerProfil(player:Player):MessageEmbed {
+    public static async playerProfil(player:Player):Promise<MessageEmbed> {
         var embed = new MessageEmbed()
         embed.setTitle("Profil de "+player.discordUser.tag)
         var lifeStats = player.getLifeBarre()
@@ -164,6 +165,9 @@ export default class EmbedConstructor{
             effets += playerEffects.find(e=>e.id==currentEffects[i].effect_type).toString((currentEffects[i].end_time-Date.now())/1000,currentEffects[i].power)+"\n"
         }
         embed.addField("Effets",effets!=""?effets:"Aucun effet")
+        var time = Date.now()
+        embed.setImage(await CanvasHelper.generatePlayerProfil(player))
+        console.log(time-Date.now())
        return embed;
     }
 

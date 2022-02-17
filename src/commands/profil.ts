@@ -14,6 +14,6 @@ export = async function(data:commandSender){
     if (!thisPlayer){
         return CommandSenderManager.reply(data,{"embeds":[EmbedConstructor.notRegisterEmbed("OTHER")]})
     }
-    var embed = EmbedConstructor.playerProfil(thisPlayer)
+    var embed = await EmbedConstructor.playerProfil(thisPlayer)
     CommandSenderManager.reply(data,{embeds:[embed]})
 }
